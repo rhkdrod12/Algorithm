@@ -1,22 +1,21 @@
 package DIjkstra;
 
-import com.sun.org.slf4j.internal.Logger;
-import com.sun.org.slf4j.internal.LoggerFactory;
-
-import javax.swing.*;
-import java.security.Key;
 import java.util.*;
 
 public class Dijkstra {
 
     public static void main(String[] args) {
 
+        Integer a = 1;
+        Integer b = 3;
+
+        System.out.println(a.equals(b));
         int n = 4; // 마을 수
         int m = 8; // 간선 수
         int x = 2; // 타겟 마을
 
         int[][] route = {{1, 2, 4}, {1, 3, 2}, {1, 4, 7}, {2, 1, 1}, {2, 3, 5}, {3, 1, 2}, {3, 4, 4},
-                {4, 2, 3}};
+                {4, 2, 3}, {4,3,1}};
 
         int answer = solution(n, m, x, route);
 
@@ -31,9 +30,7 @@ public class Dijkstra {
         // 어찌보면 이름가지고 처리하려면 이것저것 많이 고려대상이 많아지네
         // 결국에는 index화 시켜서 처리하는게 더 빠르겠네..
 
-
-        HashMap<Integer, Town> nodes = new HashMap<>();
-
+        HashMap<Integer, Town<Integer>> nodes = new HashMap<>();
 
         // 경로에 따른 비용을 맵으로 만들기
         for (int i = 0; i < route.length; i++) {
@@ -43,78 +40,106 @@ public class Dijkstra {
 
             if (nodes.containsKey(s)) {
                 nodes.get(s).connectTown(e, c);
+                nodes.get(s).setPath(e, s);
             } else {
                 nodes.put(s, new Town(s, e, c));
             }
         }
 
         nodes.entrySet().forEach(r-> System.out.println(r));
-        dijkstra(1, nodes);
+        for(Integer townNum : nodes.keySet()){
+            dijkstra(townNum, nodes);
+        }
 
-//        Arrays.asList(route).forEach(item -> System.out.println(Arrays.toString(item)));
-        // 비용도 저장하고 있어야하고 경로도 저장하고 있어야함~~
-        // 일단 1 ~ n 까지 순차적으로 증가하는 방식임
-        // 경로를 저장하고 있어야한다는 건데
+        System.out.println("결과");
+        nodes.entrySet().forEach(r-> System.out.println(r));
 
+        for(Integer townNum : nodes.keySet()){
+            if(townNum != x){
+                int cost = nodes.get(townNum).dist.get(x).distance + nodes.get(x).dist.get(townNum).distance;
+                nodes.get(townNum).printPath(x);
+                if(answer < cost) answer = cost;
+            }
+        }
+        System.out.println("결과값: " + answer);
         return answer;
     }
 
-    public static void dijkstra(int townNum, HashMap<Integer, Town> towns) {
+    public static void dijkstra(int townNum, HashMap<Integer, Town<Integer>> towns) {
 
-        Town town = towns.get(townNum);
+        Town<Integer> town = towns.get(townNum);
 
         while (!town.isEmpty()){
-            Node nextNode = town.getMinCostTown();
+            Node<Integer> nextTownNode = town.getMinCostTown();
 
-            if(town.isVisited(nextNode.nodeNum)) continue;
-            town.visited(nextNode.nodeNum);
+            if(town.isVisited(nextTownNode.nodeNum)) continue;
+            town.visited(nextTownNode.nodeNum);
 
-            Town nextTown = towns.get(nextNode.nodeNum);
+            Town<Integer> nextTown = towns.get(nextTownNode.nodeNum);
 
-            for(Integer ableMoveTownNum : nextTown.dist.keySet()){
-                if(town.isVisited(ableMoveTownNum)) continue;
+            for(Integer ableTownNum : nextTown.dist.keySet()){
+                if(town.isVisited(ableTownNum)) continue;
 
-                Node tempNode = nextTown.dist.get(ableMoveTownNum);
-
-                if(!town.dist.containsKey(tempNode)){
-                    town.dist.put(ableMoveTownNum, new Node(ableMoveTownNum, tempNode.distance + nextNode.distance));
-                }else if(town.dist.get(ableMoveTownNum).distance > tempNode.distance + nextNode.distance){
-                    town.dist.get(ableMoveTownNum).distance = tempNode.distance + nextNode.distance;
+                Node<Integer> tempNode = nextTown.dist.get(ableTownNum);
+                if(!town.dist.containsKey(ableTownNum) || (town.dist.get(ableTownNum).distance > (tempNode.distance + nextTownNode.distance))){
+                    town.dist.put(ableTownNum, new Node(ableTownNum, tempNode.distance + nextTownNode.distance));
+                    town.setPath(ableTownNum, nextTown.townNum);
                 }
-
             }
-
-
         }
-        // 저렇게 되면 방문정보를 어떻게 만드냐인데..
-        // set?
+        //약간 낭비이긴 하네, 굳이 없어도 되는 일회성 정보인데.. 저장안해도 되는데 공간을 차지하고 있으니,, null처리한다고 해도 음. 별로겠네
+        town.setInit();
 
     }
 }
 
-class Town{
+class Town<T>{
 
-    int townNum;
+    T townNum;
     PriorityQueue<Node> costs = new PriorityQueue<>();
-    Set<Integer> visited = new HashSet<>();
-    HashMap<Integer, Node> dist = new HashMap<>();
-    HashMap<Integer, Integer> path = new HashMap<>();
+    Set<T> visited = new HashSet<>();
+    HashMap<T, Node> dist = new HashMap<>();
+    HashMap<T, T> path = new HashMap<>();
 
-    public Town(int townNum) {
+    public Town(T townNum) {
         this.townNum = townNum;
         this.path.put(townNum, townNum);
         this.visited.add(townNum);
     }
 
-    public Town(int townNum, int connectTownNum, int distance) {
+    public Town(T townNum, T connectTownNum, int distance) {
         this(townNum);
         this.connectTown(connectTownNum, distance);
+        this.path.put(connectTownNum, townNum);
     }
 
-    public void connectTown(int townNum, int distance) {
+    public void setInit(){
+        this.visited = null;
+        this.costs = null;
+    }
+
+    public void printPath(T townNum) {
+        ArrayList list = new ArrayList();
+        list.add(townNum);
+        T tempNum = townNum;
+        for (int i = 0; i < path.size(); i++) {
+
+            if(path.get(tempNum).equals(tempNum)) break;
+
+            list.add(path.get(tempNum));
+            tempNum = path.get(tempNum);
+        }
+        Collections.reverse(list);
+        System.out.println(String.format("Path %s -> %s : %s", this.townNum, townNum , list));
+    }
+
+    public void connectTown(T townNum, int distance) {
         Node connectTown = new Node(townNum, distance);
         this.costs.add(connectTown);
         this.dist.put(townNum, connectTown);
+    }
+    public void setPath(T from, T to) {
+        path.put(from, to);
     }
 
     public Node getMinCostTown() {
@@ -125,10 +150,10 @@ class Town{
         return costs.isEmpty();
     }
 
-    public boolean isVisited(int townNum){
+    public boolean isVisited(T townNum){
         return visited.contains(townNum);
     }
-    public void visited(int townNum){
+    public void visited(T townNum){
         visited.add(townNum);
     }
 
@@ -144,15 +169,15 @@ class Town{
     }
 }
 
-class Node implements Comparable<Node> {
-    int nodeNum;
+class Node<T> implements Comparable<Node> {
+    T nodeNum;
     int distance = Integer.MAX_VALUE;
 
-    public Node(int nodeNum) {
+    public Node(T nodeNum) {
         this.nodeNum = nodeNum;
     }
 
-    public Node(int nodeNum, int distance) {
+    public Node(T nodeNum, int distance) {
         this.nodeNum = nodeNum;
         this.distance = distance;
     }
