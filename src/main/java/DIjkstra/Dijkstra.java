@@ -15,7 +15,7 @@ public class Dijkstra {
         int x = 2; // 타겟 마을
 
         int[][] route = {{1, 2, 4}, {1, 3, 2}, {1, 4, 7}, {2, 1, 1}, {2, 3, 5}, {3, 1, 2}, {3, 4, 4},
-                {4, 2, 3}, {4,3,1}};
+                {4, 2, 3}, {3,2,5}};
 
         int answer = solution(n, m, x, route);
 
@@ -56,8 +56,9 @@ public class Dijkstra {
 
         for(Integer townNum : nodes.keySet()){
             if(townNum != x){
-                int cost = nodes.get(townNum).dist.get(x).distance + nodes.get(x).dist.get(townNum).distance;
                 nodes.get(townNum).printPath(x);
+                nodes.get(x).printPath(townNum);
+                int cost = nodes.get(townNum).dist.get(x).distance + nodes.get(x).dist.get(townNum).distance;
                 if(answer < cost) answer = cost;
             }
         }
@@ -130,7 +131,7 @@ class Town<T>{
             tempNum = path.get(tempNum);
         }
         Collections.reverse(list);
-        System.out.println(String.format("Path %s -> %s : %s", this.townNum, townNum , list));
+        System.out.println(String.format("Cost: %d Path %s -> %s : %s", dist.get(townNum).distance, this.townNum, townNum , list));
     }
 
     public void connectTown(T townNum, int distance) {
