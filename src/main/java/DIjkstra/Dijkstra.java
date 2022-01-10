@@ -6,10 +6,6 @@ public class Dijkstra {
 
     public static void main(String[] args) {
 
-        Integer a = 1;
-        Integer b = 3;
-
-        System.out.println(a.equals(b));
         int n = 4; // 마을 수
         int m = 8; // 간선 수
         int x = 2; // 타겟 마을
@@ -18,41 +14,36 @@ public class Dijkstra {
                 {4, 2, 3}, {3,2,5}};
 
         int answer = solution(n, m, x, route);
+        System.out.println("결과 : " + answer);
 
     }
 
     public static int solution(int n, int m, int x, int[][] route) {
+        //어차피 맵으로 처리했으니 n과 m이 필요가 없구만...
         int answer = 0;
-
-        // 결국에는 다익스트라 알고리즘은 DP를 사용하는 거고
-        // 경로를 저장할 공간이 필요
-        // 경로는 arrayList로 저장하면 되려나..
-        // 어찌보면 이름가지고 처리하려면 이것저것 많이 고려대상이 많아지네
-        // 결국에는 index화 시켜서 처리하는게 더 빠르겠네..
-
         HashMap<Integer, Town<Integer>> nodes = new HashMap<>();
 
         // 경로에 따른 비용을 맵으로 만들기
-        for (int i = 0; i < route.length; i++) {
-            int s = route[i][0];
-            int e = route[i][1];
-            int c = route[i][2];
+        for (int[] ints : route) {
+            int s = ints[0];
+            int e = ints[1];
+            int c = ints[2];
 
             if (nodes.containsKey(s)) {
                 nodes.get(s).connectTown(e, c);
                 nodes.get(s).setPath(e, s);
             } else {
-                nodes.put(s, new Town(s, e, c));
+                nodes.put(s, new Town<>(s, e, c));
             }
         }
 
-        nodes.entrySet().forEach(r-> System.out.println(r));
+        nodes.entrySet().forEach(System.out::println);
         for(Integer townNum : nodes.keySet()){
             dijkstra(townNum, nodes);
         }
 
         System.out.println("결과");
-        nodes.entrySet().forEach(r-> System.out.println(r));
+        nodes.entrySet().forEach(System.out::println);
 
         for(Integer townNum : nodes.keySet()){
             if(townNum != x){
@@ -62,7 +53,7 @@ public class Dijkstra {
                 if(answer < cost) answer = cost;
             }
         }
-        System.out.println("결과값: " + answer);
+
         return answer;
     }
 
@@ -83,23 +74,22 @@ public class Dijkstra {
 
                 Node<Integer> tempNode = nextTown.dist.get(ableTownNum);
                 if(!town.dist.containsKey(ableTownNum) || (town.dist.get(ableTownNum).distance > (tempNode.distance + nextTownNode.distance))){
-                    town.dist.put(ableTownNum, new Node(ableTownNum, tempNode.distance + nextTownNode.distance));
+                    town.dist.put(ableTownNum, new Node<>(ableTownNum, tempNode.distance + nextTownNode.distance));
                     town.setPath(ableTownNum, nextTown.townNum);
                 }
             }
         }
-        //약간 낭비이긴 하네, 굳이 없어도 되는 일회성 정보인데.. 저장안해도 되는데 공간을 차지하고 있으니,, null처리한다고 해도 음. 별로겠네
+        //약간 낭비이긴 하네, 굳이 없어도 되는 일회성 정보인데.. 저장안해도 되는데 공간을 차지하고 있으니,, nullius 해도 음. 별로겠네
         town.setInit();
-
     }
 }
 
 class Town<T>{
 
     T townNum;
-    PriorityQueue<Node> costs = new PriorityQueue<>();
+    PriorityQueue<Node<T>> costs = new PriorityQueue<>();
     Set<T> visited = new HashSet<>();
-    HashMap<T, Node> dist = new HashMap<>();
+    HashMap<T, Node<T>> dist = new HashMap<>();
     HashMap<T, T> path = new HashMap<>();
 
     public Town(T townNum) {
@@ -120,7 +110,7 @@ class Town<T>{
     }
 
     public void printPath(T townNum) {
-        ArrayList list = new ArrayList();
+        ArrayList<T> list = new ArrayList<>();
         list.add(townNum);
         T tempNum = townNum;
         for (int i = 0; i < path.size(); i++) {
@@ -131,11 +121,11 @@ class Town<T>{
             tempNum = path.get(tempNum);
         }
         Collections.reverse(list);
-        System.out.println(String.format("Cost: %d Path %s -> %s : %s", dist.get(townNum).distance, this.townNum, townNum , list));
+        System.out.printf("Cost: %d Path %s -> %s : %s%n", dist.get(townNum).distance, this.townNum, townNum , list);
     }
 
     public void connectTown(T townNum, int distance) {
-        Node connectTown = new Node(townNum, distance);
+        Node<T> connectTown = new Node<>(townNum, distance);
         this.costs.add(connectTown);
         this.dist.put(townNum, connectTown);
     }
@@ -143,7 +133,7 @@ class Town<T>{
         path.put(from, to);
     }
 
-    public Node getMinCostTown() {
+    public Node<T> getMinCostTown() {
         return costs.poll();
     }
 
@@ -170,13 +160,9 @@ class Town<T>{
     }
 }
 
-class Node<T> implements Comparable<Node> {
+class Node<T> implements Comparable<Node<T>> {
     T nodeNum;
-    int distance = Integer.MAX_VALUE;
-
-    public Node(T nodeNum) {
-        this.nodeNum = nodeNum;
-    }
+    int distance;
 
     public Node(T nodeNum, int distance) {
         this.nodeNum = nodeNum;
