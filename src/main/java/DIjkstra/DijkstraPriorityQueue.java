@@ -2,7 +2,7 @@ package DIjkstra;
 
 import java.util.*;
 
-public class Dijkstra {
+public class DijkstraPriorityQueue {
 
     public static void main(String[] args) {
 
