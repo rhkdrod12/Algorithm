@@ -1,4 +1,4 @@
-package DIjkstra.Quiz;
+package DIjkstra.Quiz02;
 
 public class Quiz02 {
 

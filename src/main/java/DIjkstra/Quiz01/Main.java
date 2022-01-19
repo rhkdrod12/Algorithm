@@ -36,11 +36,11 @@ public class Main {
                 {5, 5, 4},
                 {3, 9, 1},
                 {3, 2, 7}};
-
-        solution(n, route);
+    
+        System.out.println(solution(n, route));
     }
 
-    public static void solution(int n, int[][] route) {
+    public static int solution(int n, int[][] route) {
 
         
 
@@ -68,7 +68,7 @@ public class Main {
         // 4 -> 1,3,5,7
         
         int[][] dp = new int[n*n][n*n]; //dp[i][j] = i -> j로 가는데 발생하는 비용
-        PriorityQueue<Node>[] nodes = new PriorityQueue[n*n];    // Node[i][j] i -> j로 이동하는데 발생하는 비용정보
+        PriorityQueue<Node>[] nodes = new PriorityQueue[n*n];    // Node[i][j] i -> j로 이동하는데 발생하는 최소 비용으로 정렬된 비용정보
         // 경로정보 만들기
         for (int i = 0; i < dp.length; i++) {
             Arrays.fill(dp[i], Integer.MAX_VALUE);
@@ -114,9 +114,36 @@ public class Main {
         for (int i = 0; i < nodes.length; i++) {
             System.out.printf("%d-> %s\n", i, nodes[i].toString());
         }
+    
+        dijkstra(0, dp, nodes[0]);
+    
+        System.out.println(Arrays.toString(dp[0]));
+        
+        return dp[0][n*n-1] + route[0][0];
     }
     
-    public static void dijkstra(int nodeNum, int )
+    public static void dijkstra(int nodeNum, int[][] dp,  PriorityQueue<Node> priorityQueue){
+    
+        int[] now = dp[nodeNum];
+        boolean[] visited = new boolean[dp[nodeNum].length];
+        visited[nodeNum] = true;
+        
+        while (!priorityQueue.isEmpty()) {
+            Node node = priorityQueue.poll();
+            
+            if(visited[node.nodeNum]) continue;
+            visited[node.nodeNum] = true;
+    
+            int[] next = dp[node.nodeNum];
+    
+            for (int i = 0; i < next.length; i++) {
+                if(!visited[i] && next[i] != Integer.MAX_VALUE && now[i] > node.cost + next[i]){
+                    now[i] = node.cost + next[i];
+                    priorityQueue.add(new Node(i, node.cost + next[i]));
+                }
+            }
+        }
+    }
 
 }
 
