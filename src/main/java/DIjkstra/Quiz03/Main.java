@@ -94,7 +94,7 @@ class Solution {
         // 트랩이 있는 경우에 경로 정보를 둘다 잡아놓기 위해서~
         Map<Integer, Boolean> trapSet = new HashMap<>();
         for (int i = 0; i < traps.length; i++) {
-            trapSet.put(traps[i] -1, false);
+            trapSet.put(traps[i] - 1, false);
         }
         System.out.println(trapSet);
         
@@ -132,16 +132,18 @@ class Solution {
             System.out.println(routes[i]);
         }
         
-        dijkstra(start-1, dp, routes, trapSet);
+        dijkstra(start - 1, dp, routes, trapSet);
         
         return answer;
     }
     
-    static void dijkstra(int start, int[][] dp, Set<Integer>[] routes, Map<Integer, Boolean> traps ){
-    
+    static void dijkstra(int start, int[][] dp, Set<Integer>[] routes, Map<Integer, Boolean> traps) {
+        
         System.out.println("startNum = " + start);
-    
+        
         PriorityQueue<Node> nodes = new PriorityQueue<>();
+        
+        boolean trap = false;
         boolean[] visited = new boolean[dp[start].length];
         visited[start] = true;
         
@@ -152,16 +154,16 @@ class Solution {
         System.out.println(nodes);
         
         
-        while(!nodes.isEmpty()){
+        while (!nodes.isEmpty()) {
             Node nextNode = nodes.poll();
             
+            if (trap != nextNode.trap) continue;
             
-            
-            if(visited[nextNode.nodeNum]) continue;
+            if (visited[nextNode.nodeNum]) continue;
             
             // 방문한 곳이면 패스인데.. 그전에 방문은 했는데 트랩이 발동한 상황이라면..?
             visited[nextNode.nodeNum] = true;
-        
+            
         }
         
         
@@ -169,16 +171,42 @@ class Solution {
         // 함정이 발동하면 2->3 으로 갈 수 있던게 3->2로 갈 수 있지유..
         /*
             함정이 발동 중이 아니다!
-            
             다익스트라의 기본 원리는 가장 비용이 싼 곳부터 찾아서 갈 수 있는 길을 갱신해 나가는 방식
+            
+            [풀이]
+            1. 시작 점에서 갈 수 있는 경로 중에서 최소 비용을 찾음
+            2. 해당 지점이 트랩이 발동 중인지 확인 발동 중이면 패스 아니라면 해당 최소 비용의 지점을 방문 상태로 변경
+            3. 그 후 해당 지점이 트랩인지 아닌지 확인, 상태코드를 트랩 상태(해당 지점을)로 변경 후 갈 수 있는 경로를 뒤집기
+            4. 해당 지점에서 갈 수 있는 경로 중에서 기존 경로와 비용 비교 후 더 작다면 치환
+            5. 1~4을 반복
+            
+            저러면 해당 지점의 트랩이 발동 중인지 아닌지를 판단을 해야하고 가려는 지점의 트랩이 발동 중 인지도 확인해야함
+            해당 지점의 트랩이 발동 중이면 해당 지점으로 갈 수 없는거고
+            마찬가지로 가려는 지점의 트랩이 발동 중이면 갈 수 없는 길
+            잠깐만.. 근데 a -> b 로 갔는데 b가 함정이다 원래 c->b로 갈 수 있는 길이었는데
+            발동해서 b->c로 갈 수 있는 길이 되었다
+            근데 c도 함정이다
+            
+            
+            그러면 c로 도작하는 순간 b->c의 길은 다시 c->b 상태로 변경되는데 a->b 은 여전히 b->a상태란 말이지..
+            저러면 특정 a에서 b로 이동 할 때 트랩 발동 여부를 저장하고 있어야한다는 건데 왜냐면 c->b로 올 수 있는 상태일 수 도 있다라는거니까..
+            
+            그리고 b에서 나가는 길은 얼마든지 치환이 가능한데.. 특정 지점에서 b로 오는 경우는? 어떻게 확인?
+            
+            dp[a][b] 라고 하면 b지점이 트랩이면 무엇이 되었든 a-z 까지라고 하면 어차피 도중 경로가 어떻게 되었든 트랩이 발동하면 해당 지점에서 그 지점으로 못가는 거니까..
+            dp[a-z][b] b로 가는 길          -> 트랩 발동 상태로 변경
+            dp[b][a-z] b에서 나가는 길       -> 트랩 발동 상태로 변경
+           
+            
+            
             
          */
         
-    
+        
     }
 }
 
-class Node implements Comparable<Node>{
+class Node implements Comparable<Node> {
     int nodeNum;
     int cost = Integer.MAX_VALUE;
     boolean trap;
