@@ -1,6 +1,9 @@
 package DIjkstra.Quiz03;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 public class Main {
 
@@ -60,7 +63,7 @@ public class Main {
         int start = 1;
         int end = 3;
         int[][] roads = {{1, 2, 2}, {3, 2, 3}};
-        int[] traps = {2};
+        int[] traps = {2,3};
         
         int result = new Solution().solution(n, start, end, roads, traps);
         System.out.println("result = " + result);
@@ -75,45 +78,122 @@ class Solution {
         
         /*
             비트마스크
-            bit를 이용해 true, false를 판단하는 방식
+            bit를 이용해 true, false를 판단하는 방식, 해당 비트가 1이면 함정이 발동 상태, 0이면 미발동 상태로 판정
             
             함정의 수는 최대 10개 -> 함정으로 인해 만들 수 있는 경우의 수는 최대 2^10 = 1024가지
+            함정의 수는 최대 10개이기 때문에 필요 bit수는 10개
             
             어떠한 경로를 이용하든 발생 가능한 함정의 경우의 수는 2^n 이 될꺼고
             기존의 경로에서 1024배 증가한 수가 되려나..
             
             
             그렇다면~~ 해당 경로로 이동하는데 가장 적게 드는 비용으로 생각하고 돌리면 되려나..?
+            여기서는 방문을 했는지 중요하지 않음 -> 다시 돌아가야하는 경우도 있기 때문에,
             
+            dp[n][j] = 시작점에서 n지점으로 이동했을 때 j의 경우만큼 함정이 발생했을 때의 최소 비용
             
-            음.. 해당 경로 중에서 어차피 이동 가능한 모든 경우에 대해 판단한다면.. 문제가 없지 않을까유?
+            갈수있는 경로 함정이 발동했을 때의 경로를 모두 넣어두고 해당 지점에서 발생할 수 있는 모든 경우의 수에 대해 dp에 저장해놓으면 되겠지유
             
+            최소 비용의 지점부터 탐색이 들어간다고 한다면
+            
+            발생 가능한 경우의 수
+            
+            현재 노드가 함정인데 발동 상태      ,  다음 노드가 함정인데 발동한 상태        
+            현재 노드가 함정인데 발동 상태      ,  다음 노드가 함정인데 미발동한 상태               
+            
+            현재 노드가 함정인데 미발동 상태    ,  다음 노드가 함정인데 발동한 상태         (요부분은 어차피 정상 상태이지 않나유.?)
+            현재 노드가 함정인데 미발동 상태    ,  다음 노드가 함정인데 미발동한 상태       (함정이 아닌 상황과 동일함)
+            
+            현재 노드가 함정이 아닌 상태        ,  다음 노드가 함정인데 발동한 상태
+            현재 노드가 함정이 아닌 상태        ,  다음 노드가 함정인데 미발동한 상태
+            
+            현재 노드가 함정이 아닌 상태        ,  다음 노드가 함정이 아닌 상태
+            
+            1. 현재 노드에서 갈 수 있는 최소비용의 지점을 찾음
+            2. 현재 노드와 다음 노드의 함정 상태에 따른 비용 갱신
             
          */
+    
+        Map<Integer, Integer> trapMap = new HashMap<>();
+        for (int i = 0; i < traps.length; i++) {
+            trapMap.put(traps[i]-1, 1<<i);
+        }
+    
+        // dist[i][j] : i -> j 로 이동하는데 발생하는 비용
+        int[][] dist = new int[n][n];
+        // 경로 정보를 저장해야하는데..
+        // 어디다 하지..
+    
+        for (int i = 0; i < dist.length; i++) {
+            Arrays.fill(dist[i], Integer.MAX_VALUE);
+        }
+        
+        for (int i = 0; i < roads.length; i++) {
+            int s = roads[i][0]-1;
+            int e = roads[i][1]-1;
+            int cost = roads[i][2];
+    
+            dist[s][e] = cost;
+            if(trapMap.containsKey(e) || trapMap.containsKey(s)) dist[e][s] = cost;
+            
+            // nodes[s][e] = new Node(e, cost);
+            // if(trapMap.containsKey(e) || trapMap.containsKey(s)) nodes[e][s] = new Node(s, cost); // 음.. 트랩인 경우에만 반대 경로 저장하면 되지 않나유..???????라고 하기에는
+            //잠깐만 시작점이 트랩인 경우에도 반대 경로가 필요하지유
+        }
+    
+        Arrays.asList(dist).forEach(x-> System.out.println(Arrays.toString(x)));
+        System.out.println("trapMap = " + trapMap);
+    
+        dijkstra(start-1, dist, trapMap);
         
         return answer;
     }
     
-    static void dijkstra(int start, int[][] dp, Set<Integer>[] routes, Map<Integer, Boolean> traps) {
-        
+    static void dijkstra(int start, int[][] dist, Map<Integer, Integer> trapMap) {
     
+        // dp[i][j] : 시작점에서 i까지 진행했을 때 j의 경우로 함정이 발생했을 떄의 최소 비용
+        int[][] dp = new int[dist.length][1 << trapMap.size()];
+    
+        Arrays.asList(dp).forEach(x-> System.out.println(Arrays.toString(x)));
+    
+        PriorityQueue<Node> queue = new PriorityQueue<>();
+    
+        queue.add(new Node(start, 0));
+    
+        while (!queue.isEmpty()) {
+    
+            Node nextNode = queue.poll();
+    
+            int nodeNum = nextNode.nodeNum;
+            int nodeCost = nextNode.cost;
+            int trapState = (trapMap.getOrDefault(nodeNum, 0));    // 현재 트랩의 bitmask 잠깐만 이렇게 하면 안될거 같은데..
+            int[] nextDist = dist[nodeNum];
+    
+            System.out.println("nodeNum = " + nodeNum);
+            System.out.println("trapState = " + trapState);
+        
+            for (int i = 0; i < nextDist.length; i++) {
+            
+                int tempNodeNum = nextDist[i];
+                int tempNodeCost = dist[nodeNum][tempNodeNum];
+                
+            
+            
+            }
+        }
+        
+        
+        
     }
 }
 
 class Node implements Comparable<Node> {
     int nodeNum;
     int cost = Integer.MAX_VALUE;
-    boolean trap;
     
     public Node(int nodeNum, int cost) {
         this.nodeNum = nodeNum;
         this.cost    = cost;
-    }
-    
-    public Node(int nodeNum, int cost, boolean trap) {
-        this.nodeNum = nodeNum;
-        this.cost    = cost;
-        this.trap    = trap;
     }
     
     public int getNodeNum() {
@@ -132,14 +212,6 @@ class Node implements Comparable<Node> {
         this.cost = cost;
     }
     
-    public boolean isTrap() {
-        return trap;
-    }
-    
-    public void setTrap(boolean trap) {
-        this.trap = trap;
-    }
-    
     @Override
     public int compareTo(Node o) {
         return Integer.compare(this.cost, o.cost);
@@ -150,7 +222,6 @@ class Node implements Comparable<Node> {
         return "Node{" +
                 "nodeNum=" + nodeNum +
                 ", cost=" + cost +
-                ", trap=" + trap +
                 '}';
     }
 }
