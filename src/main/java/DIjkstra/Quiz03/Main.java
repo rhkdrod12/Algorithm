@@ -59,6 +59,8 @@ public class Main {
         
      */
     public static void main(String[] args) {
+    
+        System.out.println((0b11 & 0b10) == 0b10);
         int n = 3;
         int start = 1;
         int end = 3;
@@ -96,18 +98,12 @@ class Solution {
             
             최소 비용의 지점부터 탐색이 들어간다고 한다면
             
-            발생 가능한 경우의 수
-            
-            현재 노드가 함정인데 발동 상태      ,  다음 노드가 함정인데 발동한 상태        
-            현재 노드가 함정인데 발동 상태      ,  다음 노드가 함정인데 미발동한 상태               
-            
-            현재 노드가 함정인데 미발동 상태    ,  다음 노드가 함정인데 발동한 상태         (요부분은 어차피 정상 상태이지 않나유.?)
-            현재 노드가 함정인데 미발동 상태    ,  다음 노드가 함정인데 미발동한 상태       (함정이 아닌 상황과 동일함)
-            
-            현재 노드가 함정이 아닌 상태        ,  다음 노드가 함정인데 발동한 상태
-            현재 노드가 함정이 아닌 상태        ,  다음 노드가 함정인데 미발동한 상태
-            
-            현재 노드가 함정이 아닌 상태        ,  다음 노드가 함정이 아닌 상태
+            [발생 가능한 경우의 수]
+            현재 노드           다음 노드        방향
+            발동                발동             정방향
+            발동                미발동           역방향
+            미발동              발동             역방향
+            미발동              미발동           정방향
             
             1. 현재 노드에서 갈 수 있는 최소비용의 지점을 찾음
             2. 현재 노드와 다음 노드의 함정 상태에 따른 비용 갱신
@@ -153,33 +149,61 @@ class Solution {
     
         // dp[i][j] : 시작점에서 i까지 진행했을 때 j의 경우로 함정이 발생했을 떄의 최소 비용
         int[][] dp = new int[dist.length][1 << trapMap.size()];
-    
+        boolean[][] visited = new boolean[dist.length][1 << trapMap.size()];
+        
         Arrays.asList(dp).forEach(x-> System.out.println(Arrays.toString(x)));
     
         PriorityQueue<Node> queue = new PriorityQueue<>();
     
-        queue.add(new Node(start, 0));
-    
+        queue.add(new Node(start, 0, 0));
+        
+        //visited[start][0] = true;
+        
         while (!queue.isEmpty()) {
     
-            Node nextNode = queue.poll();
+            Node curNode = queue.poll();
     
-            int nodeNum = nextNode.nodeNum;
-            int nodeCost = nextNode.cost;
-            int trapState = (trapMap.getOrDefault(nodeNum, 0));    // 현재 트랩의 bitmask 잠깐만 이렇게 하면 안될거 같은데..
-            int[] nextDist = dist[nodeNum];
-    
-            System.out.println("nodeNum = " + nodeNum);
-            System.out.println("trapState = " + trapState);
-        
-            for (int i = 0; i < nextDist.length; i++) {
+            int curNodeNum = curNode.nodeNum;
+            int curNodeCost = curNode.cost;
+            int curNodeState = curNode.state;
+            boolean curNodeTrap = trapMap.containsKey(curNodeNum);
+            //현재 노드가 트랩이라면 노드의 트랩 상태를 toggle
+            if(curNodeTrap) curNodeState ^= trapMap.get(curNodeState);
             
-                int tempNodeNum = nextDist[i];
-                int tempNodeCost = dist[nodeNum][tempNodeNum];
+            //토글 상태가 변경되면 해당 트랩 상태를 방문했는지 확인작업해야하나..
+            if(visited[curNodeNum][curNodeState]) continue;
+            visited[curNodeNum][curNodeState] = true;
+            
+            //트랩이라면 경로가 얼마든지 뒤짚어 질 수 있단말이지..?
+            //여기서 갈 수 있는 경로는 dist[curNodeNum][] 에 있는데.. 문제는 이건 정방향인 경우지..
+            //아니지 역방향도 저장되어있자나. curNodeNum에서 갈 수 있는 역방향 정보도 저장은 되어있지..
+    
+            int[] curDist = dist[curNodeNum];
+            System.out.println("curNodeNum = " + curNodeNum);
+            System.out.println("curNodeCost = " + curNodeCost);
+            System.out.println("curNodeState = " + curNodeState);
+            System.out.println("curDist = " + Arrays.toString(curDist));
+    
+            
+            boolean curTrapOn;
+            boolean nextTrapOn;
+            for (int i = 0; i < curDist.length; i++) {
+                int nextNodeNum = curDist[i];
+                boolean nextNodeTrap = trapMap.containsKey(nextNodeNum);
                 
-            
-            
+                if(curNodeTrap){
+                    curTrapOn = (curNodeState & trapMap.get(curNodeNum)) == trapMap.get(curNodeNum);
+                }
+    
+                if(nextNodeTrap){
+                    nextTrapOn = (curNodeState & trapMap.get(nextNodeNum)) == trapMap.get(nextNodeNum);
+                }
+                
+                
+                
             }
+            
+    
         }
         
         
@@ -190,10 +214,17 @@ class Solution {
 class Node implements Comparable<Node> {
     int nodeNum;
     int cost = Integer.MAX_VALUE;
+    int state = 0;
     
     public Node(int nodeNum, int cost) {
         this.nodeNum = nodeNum;
         this.cost    = cost;
+    }
+    
+    public Node(int nodeNum, int cost, int state) {
+        this.nodeNum = nodeNum;
+        this.cost    = cost;
+        this.state   = state;
     }
     
     public int getNodeNum() {
@@ -210,6 +241,14 @@ class Node implements Comparable<Node> {
     
     public void setCost(int cost) {
         this.cost = cost;
+    }
+    
+    public int getState() {
+        return state;
+    }
+    
+    public void setState(int state) {
+        this.state = state;
     }
     
     @Override
