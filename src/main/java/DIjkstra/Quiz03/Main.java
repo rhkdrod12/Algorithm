@@ -1,9 +1,6 @@
 package DIjkstra.Quiz03;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.*;
 
 public class Main {
 
@@ -52,31 +49,36 @@ public class Main {
         3	1	    3	    [[1, 2, 2], [3, 2, 3]]	            [2]	        5
         4	1	    4	    [[1, 2, 1], [3, 2, 1], [2, 4, 1]]	[2, 3]	    4
      */
-    
-    /*
-        생각을 해보면 트랩이 발동하는 경우에는 기존 경로가 사라지고 새로운 경로가 발생하는거긴해유
-        DP[i][j] -> i 에서 j 까지 가는데 발생하는 비용
-        
-     */
-    public static void main(String[] args) {
-    
-        System.out.println((0b11 & 0b10) == 0b10);
-        int n = 3;
-        int start = 1;
-        int end = 3;
-        int[][] roads = {{1, 2, 2}, {3, 2, 3}};
-        int[] traps = {2,3};
-        
-        int result = new Solution().solution(n, start, end, roads, traps);
-        System.out.println("result = " + result);
-    }
-    
+	
+	/*
+		생각을 해보면 트랩이 발동하는 경우에는 기존 경로가 사라지고 새로운 경로가 발생하는거긴해유
+		DP[i][j] -> i 에서 j 까지 가는데 발생하는 비용
+		
+	 */
+	public static void main(String[] args) {
+		
+		// int n = 3;
+		// int start = 1;
+		// int end = 3;
+		// int[][] roads = {{0, 1, 2}, {2, 1, 3}};
+		// int[] traps = {1, 2};
+		
+		int n = 4;
+		int start = 1;
+		int end = 4;
+		int[][] roads = {{1, 2, 1}, {3, 2, 1}, {2, 4, 1}};
+		int[] traps = {2, 3};
+		
+		int result = new Solution().solution(n, start, end, roads, traps);
+		System.out.println("result = " + result);
+	}
+	
 }
 
 
 class Solution {
-    public int solution(int n, int start, int end, int[][] roads, int[] traps) {
-        int answer = 0;
+	public int solution(int n, int start, int end, int[][] roads, int[] traps) {
+		int answer = 0;
         
         /*
             비트마스크
@@ -109,158 +111,143 @@ class Solution {
             2. 현재 노드와 다음 노드의 함정 상태에 따른 비용 갱신
             
          */
-    
-        Map<Integer, Integer> trapMap = new HashMap<>();
-        for (int i = 0; i < traps.length; i++) {
-            trapMap.put(traps[i]-1, 1<<i);
-        }
-    
-        // dist[i][j] : i -> j 로 이동하는데 발생하는 비용
-        int[][] dist = new int[n][n];
-        // 경로 정보를 저장해야하는데..
-        // 어디다 하지..
-    
-        for (int i = 0; i < dist.length; i++) {
-            Arrays.fill(dist[i], Integer.MAX_VALUE);
-        }
-        
-        for (int i = 0; i < roads.length; i++) {
-            int s = roads[i][0]-1;
-            int e = roads[i][1]-1;
-            int cost = roads[i][2];
-    
-            dist[s][e] = cost;
-            if(trapMap.containsKey(e) || trapMap.containsKey(s)) dist[e][s] = cost;
-            
-            // nodes[s][e] = new Node(e, cost);
-            // if(trapMap.containsKey(e) || trapMap.containsKey(s)) nodes[e][s] = new Node(s, cost); // 음.. 트랩인 경우에만 반대 경로 저장하면 되지 않나유..???????라고 하기에는
-            //잠깐만 시작점이 트랩인 경우에도 반대 경로가 필요하지유
-        }
-    
-        Arrays.asList(dist).forEach(x-> System.out.println(Arrays.toString(x)));
-        System.out.println("trapMap = " + trapMap);
-    
-        dijkstra(start-1, dist, trapMap);
-        
-        return answer;
-    }
-    
-    static void dijkstra(int start, int[][] dist, Map<Integer, Integer> trapMap) {
-    
-        // dp[i][j] : 시작점에서 i까지 진행했을 때 j의 경우로 함정이 발생했을 떄의 최소 비용
-        int[][] dp = new int[dist.length][1 << trapMap.size()];
-        boolean[][] visited = new boolean[dist.length][1 << trapMap.size()];
-        
-        Arrays.asList(dp).forEach(x-> System.out.println(Arrays.toString(x)));
-    
-        PriorityQueue<Node> queue = new PriorityQueue<>();
-    
-        queue.add(new Node(start, 0, 0));
-        
-        //visited[start][0] = true;
-        
-        while (!queue.isEmpty()) {
-    
-            Node curNode = queue.poll();
-    
-            int curNodeNum = curNode.nodeNum;
-            int curNodeCost = curNode.cost;
-            int curNodeState = curNode.state;
-            boolean curNodeTrap = trapMap.containsKey(curNodeNum);
-            //현재 노드가 트랩이라면 노드의 트랩 상태를 toggle
-            if(curNodeTrap) curNodeState ^= trapMap.get(curNodeState);
-            
-            //토글 상태가 변경되면 해당 트랩 상태를 방문했는지 확인작업해야하나..
-            if(visited[curNodeNum][curNodeState]) continue;
-            visited[curNodeNum][curNodeState] = true;
-            
-            //트랩이라면 경로가 얼마든지 뒤짚어 질 수 있단말이지..?
-            //여기서 갈 수 있는 경로는 dist[curNodeNum][] 에 있는데.. 문제는 이건 정방향인 경우지..
-            //아니지 역방향도 저장되어있자나. curNodeNum에서 갈 수 있는 역방향 정보도 저장은 되어있지..
-    
-            int[] curDist = dist[curNodeNum];
-            System.out.println("curNodeNum = " + curNodeNum);
-            System.out.println("curNodeCost = " + curNodeCost);
-            System.out.println("curNodeState = " + curNodeState);
-            System.out.println("curDist = " + Arrays.toString(curDist));
-    
-            
-            boolean curTrapOn;
-            boolean nextTrapOn;
-            for (int i = 0; i < curDist.length; i++) {
-                int nextNodeNum = curDist[i];
-                boolean nextNodeTrap = trapMap.containsKey(nextNodeNum);
-                
-                if(curNodeTrap){
-                    curTrapOn = (curNodeState & trapMap.get(curNodeNum)) == trapMap.get(curNodeNum);
-                }
-    
-                if(nextNodeTrap){
-                    nextTrapOn = (curNodeState & trapMap.get(nextNodeNum)) == trapMap.get(nextNodeNum);
-                }
-                
-                
-                
-            }
-            
-    
-        }
-        
-        
-        
-    }
+		
+		Map<Integer, Integer> trapMap = new HashMap<>();
+		for (int i = 0; i < traps.length; i++) {
+			trapMap.put(traps[i]-1, 1 << i);
+		}
+		
+		ArrayList<Node>[] dist = new ArrayList[n];
+		for (int i = 0; i < dist.length; i++) {
+			dist[i] = new ArrayList<>();
+		}
+		
+		for (int i = 0; i < roads.length; i++) {
+			int s = roads[i][0]-1;
+			int e = roads[i][1]-1;
+			int cost = roads[i][2];
+			
+			dist[s].add(new Node(e, cost));
+			if (trapMap.containsKey(e) || trapMap.containsKey(s)) {
+				dist[e].add(new Node(s, cost, true));
+			}
+		}
+		
+		answer = dijkstra(start - 1, dist, trapMap, end-1);
+		return answer;
+	}
+	
+	static int dijkstra(int start, ArrayList<Node>[] dist, Map<Integer, Integer> trapMap, int target) {
+		
+		int[][] dp = new int[dist.length][1 << trapMap.size()];
+		for (int i = 0; i < dp.length; i++) {
+			Arrays.fill(dp[i] , Integer.MAX_VALUE);
+		}
+		
+		boolean[][] visited = new boolean[dist.length][1 << trapMap.size()];
+		
+		PriorityQueue<Node> queue = new PriorityQueue<>();
+		queue.add(new Node(start, 0));
+		
+		while (!queue.isEmpty()) {
+			Node curNode = queue.poll();
+			
+			int curNum = curNode.nodeNum;
+			int curState = curNode.state;
+			int curCost = curNode.cost;
+			boolean curTrapOn = false;
+			
+			// 현재 노드가 트랩이라면 state를 변경, 트랩이 발동 상태라면 curTrapOn를 true로 변경
+			if (trapMap.containsKey(curNum)){
+				curState ^= trapMap.get(curNum);
+				if((curState & trapMap.get(curNum)) == trapMap.get(curNum)) curTrapOn = true;
+			}
+			
+			// 현재 노드번호에 현재 state로 방문한 적이 있으면 통과
+			if (visited[curNum][curState]) continue;
+			visited[curNum][curState] = true;
+			
+			// 현재 노드에서 갈 수 있는 경로 확인
+			// 여기서는 갔던 노드를 재방문이 가능하단 말이지 state만 다르다면
+			ArrayList<Node> nextNodeList = dist[curNum];
+			for (int i = 0; i < nextNodeList.size(); i++) {
+				Node nextNode = nextNodeList.get(i);
+				int nextNum = nextNode.nodeNum;
+				int nextCost = nextNode.cost;
+				boolean nextReverse = nextNode.reverse; //역방향 여부
+				
+				boolean nextTrapOn = false;
+				// curState에 따라 현재 nextNode가 트랩이 발동했는지 안했는지 확인이 가능
+				if (trapMap.containsKey(nextNum)) nextTrapOn = ((curState & trapMap.get(nextNum)) == trapMap.get(nextNum));
+				
+				/**
+				 *  현재 트랩 미발동       다음 트랩 미발동   정방향
+				 *  현재 트랩 발동         다음 트랩 미발동   역방향
+				 *  현재 트랩 미발동       다음 트랩 발동     역방향
+				 *  현재 트랩 발동         다음 트랩 발동     정방향
+				 */
+				//정방향 nextReverse가 false인경우에만 가능
+				//역방향인 경우에는 nextReverse가 true인 경우에만 가능
+				if(((curTrapOn == nextTrapOn) && !nextReverse) || ((curTrapOn != nextTrapOn) && nextReverse)){
+					if(dp[nextNum][curState] > curCost + nextCost){
+						dp[nextNum][curState] = curCost + nextCost;
+						queue.add(new Node(nextNum, curCost + nextCost, curState));
+					}
+				}
+			}
+		}
+		
+		int result = Integer.MAX_VALUE;
+		int[] targetDist = dp[target];
+		for (int i = 0; i < targetDist.length; i++) {
+			if(result > targetDist[i]) result = targetDist[i];
+		}
+		return result;
+	}
 }
 
 class Node implements Comparable<Node> {
-    int nodeNum;
-    int cost = Integer.MAX_VALUE;
-    int state = 0;
-    
-    public Node(int nodeNum, int cost) {
-        this.nodeNum = nodeNum;
-        this.cost    = cost;
-    }
-    
-    public Node(int nodeNum, int cost, int state) {
-        this.nodeNum = nodeNum;
-        this.cost    = cost;
-        this.state   = state;
-    }
-    
-    public int getNodeNum() {
-        return nodeNum;
-    }
-    
-    public void setNodeNum(int nodeNum) {
-        this.nodeNum = nodeNum;
-    }
-    
-    public int getCost() {
-        return cost;
-    }
-    
-    public void setCost(int cost) {
-        this.cost = cost;
-    }
-    
-    public int getState() {
-        return state;
-    }
-    
-    public void setState(int state) {
-        this.state = state;
-    }
-    
-    @Override
-    public int compareTo(Node o) {
-        return Integer.compare(this.cost, o.cost);
-    }
-    
-    @Override
-    public String toString() {
-        return "Node{" +
-                "nodeNum=" + nodeNum +
-                ", cost=" + cost +
-                '}';
-    }
+	int nodeNum;
+	int cost = Integer.MAX_VALUE;
+	int state = 0;
+	boolean reverse;
+	
+	public Node(int nodeNum, int cost) {
+		this.nodeNum = nodeNum;
+		this.cost    = cost;
+	}
+	
+	public Node(int nodeNum, int cost, int state) {
+		this.nodeNum = nodeNum;
+		this.cost    = cost;
+		this.state   = state;
+	}
+	
+	public Node(int nodeNum, int cost, boolean reverse) {
+		this.nodeNum = nodeNum;
+		this.cost    = cost;
+		this.reverse = reverse;
+	}
+	
+	public Node(int nodeNum, int cost, int state, boolean reverse) {
+		this.nodeNum = nodeNum;
+		this.cost    = cost;
+		this.state   = state;
+		this.reverse = reverse;
+	}
+	
+	@Override
+	public int compareTo(Node o) {
+		return Integer.compare(this.cost, o.cost);
+	}
+	
+	@Override
+	public String toString() {
+		return "Node{" +
+				"nodeNum=" + nodeNum +
+				", cost=" + cost +
+				", state=" + state +
+				", reverse=" + reverse +
+				'}';
+	}
 }
