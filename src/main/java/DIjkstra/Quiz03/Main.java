@@ -176,6 +176,8 @@ class Solution {
 				int nextCost = nextNode.cost;
 				boolean nextReverse = nextNode.reverse; //역방향 여부
 				
+				if(nextNum == target) break;
+				
 				boolean nextTrapOn = false;
 				// curState에 따라 현재 nextNode가 트랩이 발동했는지 안했는지 확인이 가능
 				if (trapMap.containsKey(nextNum)) nextTrapOn = ((curState & trapMap.get(nextNum)) == trapMap.get(nextNum));
