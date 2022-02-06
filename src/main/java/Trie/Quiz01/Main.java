@@ -7,8 +7,13 @@ import java.util.Map;
 public class Main {
 	public static void main(String[] args) {
 		
+		String query = "?????asd";
+		
+		System.out.println("query = " + query.substring(0, query.lastIndexOf("?")));
+		System.out.println(query.lastIndexOf("?"));
+		
 		String[] words = {"frodo", "front", "fron", "frost", "frozen", "frame", "kakao"};
-		String[] queries = {"fro??", "????o", "fr???", "fro???", "pro?"};
+		String[] queries = {"fro??", "????o", "fr???", "fro???", "pro?", "?????"};
 		
 		Solution sol = new Solution();
 		
@@ -71,78 +76,160 @@ class Solution {
 	
 	public int[] solution(String[] words, String[] queries) {
 		int[] answer = new int[queries.length];
-		// 일단 선형으로는 절대 안된다는걸 확인했음 ㅠㅠ
-		// trie 알고리즘의 존재 여부를 확인
-		// trie로 만들어봅시다
 		
-		// 접두사는 이제 문제 없이 찾는데
-		// 찾는건 찾는데 그럼 카운트는~? insert할 때
-		// 접미사는????
+		Map<Integer, Trie[]> map = new HashMap<>();
+		Map<String, Integer> userKeyword = new HashMap<>();
 		
-		// String[] words = {"frodo", "front", "fron", "frost", "frozen", "frame", "kakao"};
-		// String[] queries = {"fro??", "????o", "fr???", "fro???", "pro?"};
-		
-		Trie root = new Trie("");
-		
-		for (int i = 0; i < words.length; i++) {
-			root.insert(words[i]);
+		for (String word : words) {
+			int length = word.length();
+			Trie[] obj;
+			if (map.containsKey(length)) {
+				obj = map.get(length);
+			} else {
+				obj = new Trie[]{new TriePreFix((char) 0), new TrieSurFix((char) 0)};
+				map.put(length, obj);
+			}
+			obj[0].insert(word);
+			obj[1].insert(word);
 		}
-		System.out.println("root = " + root);
 		
+		for (int i = 0; i < queries.length; i++) {
+			String query = queries[i];
+			
+			if (userKeyword.containsKey(query)) {
+				answer[i] = userKeyword.get(query);
+			} else {
+				int length = query.length();
+				Trie[] trieArr = map.get(length);
+				Trie trie = null;
+				
+				if (trieArr != null) {
+					// 접두사용
+					if (query.startsWith("?")) {
+						trie = trieArr[1].find(query);
+					}
+					// 접미사용
+					else {
+						trie = trieArr[0].find(query);
+					}
+					if (trie != null) {
+						answer[i] = trie.getCount();
+						userKeyword.put(query, answer[i]);
+					}
+				}
+			}
+		}
 		return answer;
 	}
+	
 }
+
 // 숫자는 없는 소문자 알파벳구조이기 때문에
 // 음.. 자식을 가지고 있어봤자 어차피 최대 26개 이니.. 그냥 list로 돌립시다.
 // 아닌가.. 그냥 맵으로 만들어..?
-//
-class Trie{
-	String trieStr;
+// 워드 길이 별로 trie를 만든다면 조금더 빨리 검색하긴하긋네..
+abstract class Trie {
+	
+	char trieStr;
+	int count;      //자식이 가지고 있는 word의 총 수를 저장
 	boolean finish;
 	Map<Character, Trie> child = new HashMap<>();
 	
-	public Trie(String trieStr) {
+	public Trie(char trieStr) {
 		this.trieStr = trieStr;
 	}
 	
-	public void insert(String target){
-		Trie trie = this;
-		StringBuilder builder = new StringBuilder(this.trieStr);
-		for (int i = 0; i < target.length(); i++) {
-			char c = target.charAt(i);
-			builder.append(c);
-			if (trie.child.containsKey(c)) {
-				trie = trie.child.get(c);
-			}else{
-				Trie childTrie = new Trie(builder.toString());
-				trie.child.put(c, childTrie);
-				trie = childTrie;
-			}
-		}
-		//어차피 맨마직에 가지고있는 trie가 해당 target의 trie일테니 finish로 치환
-		trie.finish = true;
-	}
+	abstract public void insert(String target);
 	
-	public Trie find(String target){
-		Trie trie = this;
-		for (int i = 0; i < target.length(); i++) {
-			char c = target.charAt(i);
-			if (trie.child.containsKey(c)) {
-				trie = trie.child.get(c);
-			}else{
-				return null;
-			}
-		}
-		return trie;
-	}
+	abstract public Trie find(String target);
 	
-	@Override
-	public String toString() {
-		return "Trie{" +
-				"trieStr='" + trieStr + '\'' +
-				", finish=" + finish +
-				", child=" + child +
-				'}';
+	public int getCount() {
+		return count;
 	}
 }
 
+//접미사용 - 뒤에 ? 있는 경우
+class TriePreFix extends Trie {
+	
+	public TriePreFix(char trieStr) {
+		super(trieStr);
+	}
+	
+	public void insert(String target) {
+		Trie triePrefix = this;
+		count++;
+		for (int i = 0; i < target.length(); i++) {
+			char c = target.charAt(i);
+			if (triePrefix.child.containsKey(c)) {
+				triePrefix = triePrefix.child.get(c);
+			} else {
+				Trie childTriePreFix = new TriePreFix(c);
+				triePrefix.child.put(c, childTriePreFix);   // 새로 생성된다는건
+				triePrefix = childTriePreFix;
+			}
+			triePrefix.count++;
+		}
+		//어차피 맨 마지막에 가지고있는 trie가 해당 target의 trie일테니 finish로 치환
+		triePrefix.finish = true;
+	}
+	
+	// 해당 str를 가지고 있는 trie를 찾음
+	public Trie find(String target) {
+		Trie triePrefix = this;
+		for (int i = 0; i < target.length(); i++) {
+			char c = target.charAt(i);
+			if (c == '?') return triePrefix;
+			if (triePrefix.child.containsKey(c)) {
+				triePrefix = triePrefix.child.get(c);
+			} else {
+				return null;
+			}
+		}
+		return triePrefix;
+	}
+	
+	
+}
+
+//접두사용 - 앞에 ? 있는 경우
+class TrieSurFix extends Trie {
+	
+	public TrieSurFix(char trieStr) {
+		super(trieStr);
+	}
+	
+	public void insert(String target) {
+		Trie trieSurFix = this;
+		count++;
+		for (int i = target.length() - 1; i >= 0; i--) {
+			char c = target.charAt(i);
+			if (trieSurFix.child.containsKey(c)) {
+				trieSurFix = trieSurFix.child.get(c);
+			} else {
+				Trie childTrieSurFix = new TrieSurFix(c);
+				trieSurFix.child.put(c, childTrieSurFix);   // 새로 생성된다는건
+				trieSurFix = childTrieSurFix;
+			}
+			trieSurFix.count++;
+		}
+		//어차피 맨 마지막에 가지고있는 trie가 해당 target의 trie일테니 finish로 치환
+		trieSurFix.finish = true;
+	}
+	
+	// 해당 str를 가지고 있는 trie를 찾음
+	public Trie find(String target) {
+		Trie triePrefix = this;
+		for (int i = target.length() - 1; i >= 0; i--) {
+			char c = target.charAt(i);
+			
+			if (c == '?') return triePrefix;
+			
+			if (triePrefix.child.containsKey(c)) {
+				triePrefix = triePrefix.child.get(c);
+			} else {
+				return null;
+			}
+		}
+		return triePrefix;
+	}
+}
