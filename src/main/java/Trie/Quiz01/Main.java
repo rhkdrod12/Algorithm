@@ -128,6 +128,7 @@ class Solution {
 // 음.. 자식을 가지고 있어봤자 어차피 최대 26개 이니.. 그냥 list로 돌립시다.
 // 아닌가.. 그냥 맵으로 만들어..?
 // 워드 길이 별로 trie를 만든다면 조금더 빨리 검색하긴하긋네..
+// String 으로 받았더니만 용량 초과나는구만..
 abstract class Trie {
 	
 	char trieStr;
