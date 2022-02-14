@@ -1,5 +1,10 @@
 package Other.Quiz02;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Quiz02 {
 	
 	public static void main(String[] args) {
@@ -8,6 +13,7 @@ public class Quiz02 {
 		int height = 3;
 		int result = 15;
 		
+		new Solution().solution(land, height);
 	}
 	
 	/*
@@ -51,6 +57,9 @@ public class Quiz02 {
 	그리고 재방문을 못하는 것도 아니네..??
 	그러이면 이야기가 달라지지?
 	
+	최소한의 횟수로 최소한의 비용으로 모든 곳을 방문하는 것이 아니라
+	최소 사다리 비용를 구하는 거니..
+	
 	일단 사다리 없이 이동이 가능하면 하나의 묶음으로 볼 수 있겠네..?
 	
 	그리고 이 묶음들이 몇개가 있으며 이 묶음들에서 가장 싸게 이동 가능한 지점이 있을 거고
@@ -61,16 +70,155 @@ public class Quiz02 {
 	
 	블록으로 묶는다면 어떻게 묶지요?? list?
 	
+	해당 지점으로 가는 사다리가 여러개 일 수 있나..? 이건 있을 수 있는데
+	해당 지점에서 출발하는 사다리는 여러개 일 수가 없음
+	
+	
 	
 	 */
 	static class Solution {
+		
+		int n;
+		int height;
+		int[][] land;
+		List<Integer> list = new ArrayList<>();
+		int idx = 0;
 		public int solution(int[][] land, int height) {
 			int answer = 0;
+			
+			
+			
+			this.n      = land.length;
+			this.height = height;
+			this.land   = land;
+			
+			int idx = 0;
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					// if(idx%n > 0){
+					// 	System.out.print(String.format("  %3d", idx));
+					// }else{
+					// 	System.out.print(String.format("  %03d", idx));
+					// }
+					System.out.printf("  %3d", idx++);
+					list.add(land[i][j]);
+				}
+				System.out.println();
+			}
+			System.out.println("-------------------------------------");
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					// if(idx%n > 0){
+					// 	System.out.print(String.format("  %3d", idx));
+					// }else{
+					// 	System.out.print(String.format("  %03d", idx));
+					// }
+					System.out.printf("  %3d", land[i][j]);
+				}
+				System.out.println();
+			}
+			System.out.println("-------------------------------------");
+			
+			
+			// 위쪽이 가능하다면 위쪽 map에서 해당 idx을 찾아서 해당 비용과 비교??
+			// 그리고 그 중에서 최소값과 갈 수 있는 경로를 저장하고 있으면 되지 않을까요??
+			// 무조건 height이상으로 큰 경우에만 사다리가 세워지는데
+			// 그렇게 되려면... 음음음음
+			// 일단 블록 별로 구분해봅시다
+			// 어차피 블록내 같은 칸끼리는 같은 거나 마찬가지이니
+			// 블록으로 만들어 새로운 index로 만들어서 이를 다익스트라로 구하면 될거같은데.
+			//
+			// for (int i = 0; i < list.size(); i++) {
+			// 	int cost = list.get(i);
+			// 	Node node = new Node(i, cost);
+			//
+			// 	System.out.printf("i: %2d", i);
+			// 	//위쪽
+			// 	if(i/n > 0){
+			// 		System.out.printf(" U: %2d", i-n);
+			// 	}
+			// 	//왼쪽
+			// 	if(i%n > 0){
+			// 		System.out.printf(" L: %2d", i-1);
+			// 	}
+			// 	//오른쪽
+			// 	if(i%n < n-1){
+			// 		System.out.printf(" R: %2d", i+1);
+			// 	}
+			// 	//아래쪽
+			// 	if(i/n < n-1){
+			// 		System.out.printf(" D: %2d", i+n);
+			// 	}
+			// 	System.out.println();
+			// }
+			visited = new boolean[n * n];
+			for (int i = 0; i < list.size(); i++) {
+				dfs(i, list.get(i));
+				blockIdx++;
+			}
+			System.out.println("\nmap = " + map);
+			
+			// 위쪽   idx/n <= 0   일 떄 불가
+			// 왼쪽   idx%n <= 0   일 때 불가
+			// 오른쪽 idx%n >= n-1 일 때 불가
+			// 아래쪽 idx/n >= n-1 일 때 불가
+			
 			return answer;
 		}
 		
-		class Node{
+		int blockIdx = 0;
+		Map<Integer, Node> map = new HashMap<Integer, Node>();
+		boolean[] visited;
+		public void dfs(int idx, int preCost) {
+			
+			// if (visited[idx]) return;
+			// visited[idx] = true;
+			
+			if(Math.abs(preCost - list.get(idx)) > height){
+				return;
+			}else{
+				map.put(idx, new Node(idx, list.get(idx), blockIdx));
+			}
+			
+			if(idx/n > 0){
+				dfs(idx-n, list.get(idx));
+			}
+			if(idx%n > 0){
+				dfs(idx-1, list.get(idx));
+			}
+			if(idx%n < n-1){
+				dfs(idx+1, list.get(idx));
+			}
+			if(idx/n < n-1){
+				dfs(idx+n, list.get(idx));
+			}
+		}
+		
+		
+		class Node {
 			int nodeNum;
+			int cost;
+			int blockNum;
+			
+			public Node(int nodeNum, int cost) {
+				this.nodeNum = nodeNum;
+				this.cost    = cost;
+			}
+			
+			public Node(int nodeNum, int cost, int blockNum) {
+				this.nodeNum  = nodeNum;
+				this.blockNum = blockNum;
+				this.cost     = cost;
+			}
+			
+			@Override
+			public String toString() {
+				return "Node{" +
+						"nodeNum=" + nodeNum +
+						", cost=" + cost +
+						", blockNum=" + blockNum +
+						'}';
+			}
 		}
 	}
 	
