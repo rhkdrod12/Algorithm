@@ -1,19 +1,19 @@
 package Other.Quiz02;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Quiz02 {
 	
 	public static void main(String[] args) {
 		
-		int[][] land = {{1, 4, 8, 10}, {5, 5, 5, 5}, {10, 10, 10, 10}, {10, 10, 10, 20}};
-		int height = 3;
+		
+		// int[][] land = {{1, 4, 8, 10, 10}, {5, 5, 5, 5, 10}, {10, 10, 10, 10, 1}, {10, 10, 10, 20, 1}, {1, 1, 1, 1, 1}};
+		// int[][] land = {{1, 4, 8, 10}, {5, 5, 5, 5}, {10, 10, 10, 10}, {10, 10, 10, 20}};
+		int[][] land = {{10, 11, 10, 11,5}, {2, 21, 20, 10,3}, {1, 20, 21, 11,2}, {2, 1, 2, 1,9}, {5,7,2,1,3}};
+		int height = 1;
 		int result = 15;
 		
-		new Solution().solution(land, height);
+		System.out.println(new Solution().solution(land, height));
 	}
 	
 	/*
@@ -80,146 +80,187 @@ public class Quiz02 {
 		
 		int n;
 		int height;
-		int[][] land;
-		List<Integer> list = new ArrayList<>();
-		int idx = 0;
+		
 		public int solution(int[][] land, int height) {
 			int answer = 0;
 			
-			
-			
-			this.n      = land.length;
 			this.height = height;
-			this.land   = land;
-			
-			int idx = 0;
+			// 상하좌우로 이동이 가능핟고 했으니 변할 수 있는 값을 배열로 만듬
+			n = land.length;
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {
-					// if(idx%n > 0){
-					// 	System.out.print(String.format("  %3d", idx));
-					// }else{
-					// 	System.out.print(String.format("  %03d", idx));
-					// }
-					System.out.printf("  %3d", idx++);
-					list.add(land[i][j]);
-				}
-				System.out.println();
-			}
-			System.out.println("-------------------------------------");
-			for (int i = 0; i < n; i++) {
-				for (int j = 0; j < n; j++) {
-					// if(idx%n > 0){
-					// 	System.out.print(String.format("  %3d", idx));
-					// }else{
-					// 	System.out.print(String.format("  %03d", idx));
-					// }
 					System.out.printf("  %3d", land[i][j]);
 				}
 				System.out.println();
 			}
 			System.out.println("-------------------------------------");
 			
-			
-			// 위쪽이 가능하다면 위쪽 map에서 해당 idx을 찾아서 해당 비용과 비교??
-			// 그리고 그 중에서 최소값과 갈 수 있는 경로를 저장하고 있으면 되지 않을까요??
-			// 무조건 height이상으로 큰 경우에만 사다리가 세워지는데
-			// 그렇게 되려면... 음음음음
-			// 일단 블록 별로 구분해봅시다
-			// 어차피 블록내 같은 칸끼리는 같은 거나 마찬가지이니
-			// 블록으로 만들어 새로운 index로 만들어서 이를 다익스트라로 구하면 될거같은데.
-			//
-			// for (int i = 0; i < list.size(); i++) {
-			// 	int cost = list.get(i);
-			// 	Node node = new Node(i, cost);
-			//
-			// 	System.out.printf("i: %2d", i);
-			// 	//위쪽
-			// 	if(i/n > 0){
-			// 		System.out.printf(" U: %2d", i-n);
-			// 	}
-			// 	//왼쪽
-			// 	if(i%n > 0){
-			// 		System.out.printf(" L: %2d", i-1);
-			// 	}
-			// 	//오른쪽
-			// 	if(i%n < n-1){
-			// 		System.out.printf(" R: %2d", i+1);
-			// 	}
-			// 	//아래쪽
-			// 	if(i/n < n-1){
-			// 		System.out.printf(" D: %2d", i+n);
-			// 	}
-			// 	System.out.println();
-			// }
-			visited = new boolean[n * n];
-			for (int i = 0; i < list.size(); i++) {
-				dfs(i, list.get(i));
-				blockIdx++;
+			// 그룹화
+			int group = 0;
+			boolean[][] visited = new boolean[land.length][land.length];
+			for (int i = 0; i < land.length; i++) {
+				for (int j = 0; j < land[i].length; j++) {
+					if(!visited[i][j]){
+						setGroup(i, j, group++, land, visited);
+					}
+				}
 			}
-			System.out.println("\nmap = " + map);
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					System.out.printf("  %3d", groupMap.get(new vector(i, j)));
+				}
+				System.out.println();
+			}
+			System.out.println("-------------------------------------");
 			
-			// 위쪽   idx/n <= 0   일 떄 불가
-			// 왼쪽   idx%n <= 0   일 때 불가
-			// 오른쪽 idx%n >= n-1 일 때 불가
-			// 아래쪽 idx/n >= n-1 일 때 불가
+			
+			// 그룹간 사다리 최소비용 찾기
+			visited = new boolean[land.length][land.length];
+			Map<vector, Node> costMap = new HashMap<>();
+			for (int i = 0; i < land.length; i++) {
+				for (int j = 0; j < land[i].length; j++) {
+					if(visited[i][j]) continue;
+					visited[i][j] = true;
+					int curGroup = groupMap.get(new vector(i, j));
+					for (int k = 0; k < 4; k++) {
+						int x = i + dx[k];
+						int y = j + dy[k];
+						
+						if (x >= 0 && x < n && y >= 0 && y < n) {
+							if(visited[x][y]) continue;
+							
+							int nextGroup = groupMap.get(new vector(x, y));
+							if(curGroup != nextGroup){
+								int diff = Math.abs(land[i][j] - land[x][y]);
+								vector key = new vector(curGroup, nextGroup);
+								if (!costMap.containsKey(key) || costMap.get(key).cost > diff) {
+									costMap.put(key, new Node(key, diff));
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			
+			Set<Node> set = new TreeSet<>();
+			for (vector key : costMap.keySet()) {
+				set.add(costMap.get(key));
+			}
+			
+			// 지금 이 구조면
+			// 6 -> 7
+			
+			boolean[] groupVisited = new boolean[group];
+			for (Node node : set) {
+				int a = node.vector.x;
+				int b = node.vector.y;
+				
+				if(groupVisited[b] || groupVisited[a]) continue;
+				groupVisited[b] = true;
+				System.out.println(node);
+				answer += node.cost;
+			}
 			
 			return answer;
 		}
 		
-		int blockIdx = 0;
-		Map<Integer, Node> map = new HashMap<Integer, Node>();
-		boolean[] visited;
-		public void dfs(int idx, int preCost) {
+		static class Node implements Comparable<Node> {
 			
-			// if (visited[idx]) return;
-			// visited[idx] = true;
-			
-			if(Math.abs(preCost - list.get(idx)) > height){
-				return;
-			}else{
-				map.put(idx, new Node(idx, list.get(idx), blockIdx));
-			}
-			
-			if(idx/n > 0){
-				dfs(idx-n, list.get(idx));
-			}
-			if(idx%n > 0){
-				dfs(idx-1, list.get(idx));
-			}
-			if(idx%n < n-1){
-				dfs(idx+1, list.get(idx));
-			}
-			if(idx/n < n-1){
-				dfs(idx+n, list.get(idx));
-			}
-		}
-		
-		
-		class Node {
-			int nodeNum;
+			vector vector;
 			int cost;
-			int blockNum;
 			
-			public Node(int nodeNum, int cost) {
-				this.nodeNum = nodeNum;
-				this.cost    = cost;
+			public Node(vector vector, int cost) {
+				this.vector = vector;
+				this.cost   = cost;
 			}
 			
-			public Node(int nodeNum, int cost, int blockNum) {
-				this.nodeNum  = nodeNum;
-				this.blockNum = blockNum;
-				this.cost     = cost;
+			@Override
+			public int compareTo(Node o) {
+				return this.cost - o.cost;
 			}
 			
 			@Override
 			public String toString() {
 				return "Node{" +
-						"nodeNum=" + nodeNum +
-						", cost=" + cost +
-						", blockNum=" + blockNum +
-						'}';
+						       "vector=" + vector +
+						       ", cost=" + cost +
+						       '}';
 			}
 		}
+		
+		
+		
+		static class vector {
+			int x;
+			int y;
+			
+			public vector(int x, int y) {
+				this.x = x;
+				this.y = y;
+			}
+			
+			
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (o == null || getClass() != o.getClass()) return false;
+				vector vector = (vector) o;
+				return x == vector.x && y == vector.y;
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(x, y);
+			}
+			
+			// @Override
+			// public int compareTo(vector o) {
+			// 	return this.num - o.num;
+			// }
+			
+			@Override
+			public String toString() {
+				return "vector{" +
+						       "x=" + x +
+						       ", y=" + y +
+						       '}';
+			}
+		}
+		
+		int[] dx = {-1, 1, 0, 0};
+		int[] dy = {0, 0, 1, -1};
+		Map<vector, Integer> groupMap = new HashMap<>();
+		
+		// 그룹화
+		public void setGroup(int i, int j, int group, int[][] land, boolean[][] visited){
+			
+			vector vector = new vector(i, j);
+			Queue<Solution.vector> queue = new LinkedList<>();
+			
+			queue.add(vector);
+			visited[i][j] = true;
+			groupMap.put(new vector(i, j), group);
+			
+			while (!queue.isEmpty()) {
+				Solution.vector vec = queue.poll();
+				
+				int a = vec.x;
+				int b = vec.y;
+				for (int k = 0; k < 4; k++) {
+					int x = a + dx[k];
+					int y = b + dy[k];
+					
+					if (x >= 0 && x < n && y >= 0 && y < n && !visited[x][y] && Math.abs(land[a][b] - land[x][y]) <= height) {
+						visited[x][y] = true;
+						Solution.vector nextVector = new vector(x, y);
+						groupMap.put(new vector(x, y), group);
+						queue.add(nextVector);
+					}
+				}
+			}
+		}
+		
 	}
 	
 }
