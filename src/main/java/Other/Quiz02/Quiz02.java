@@ -143,31 +143,27 @@ public class Quiz02 {
 			}
 			
 			
-			Set<Node> set = new TreeSet<>();
+			PriorityQueue<Node> set = new PriorityQueue<>();
 			for (vector key : costMap.keySet()) {
 				set.add(costMap.get(key));
 			}
 			
 			// 지금 이 구조면
 			// 6 -> 7
-			boolean[] groupVisited = new boolean[group];
-			for (Node node : set) {
-				int a = node.vector.x;
-				int b = node.vector.y;
-				
-				if(groupVisited[b] || groupVisited[a]) continue;
-				groupVisited[b] = true;
-				System.out.println(node);
-				answer += node.cost;
-			}
+			// boolean[] groupVisited = new boolean[group];
+			// for (Node node : set) {
+			// 	int a = node.vector.x;
+			// 	int b = node.vector.y;
+			//
+			// 	if(groupVisited[b] || groupVisited[a]) continue;
+			// 	groupVisited[b] = true;
+			// 	System.out.println(node);
+			// 	answer += node.cost;
+			// }
 			
 			
 			Kruskal.setParent(group);
-			
-			int[] parent = new int[group];
-			for (int i = 0; i < parent.length; i++) {
-				parent[i] = i;
-			}
+			answer = Kruskal.cal(set);
 			return answer;
 			
 		}
@@ -183,11 +179,21 @@ public class Quiz02 {
 				}
 			}
 			
-			static public int cal(Set<Node> set) {
+			static public int cal(PriorityQueue<Node> set) {
+				int answer = 0;
 				
+				while (!set.isEmpty()){
+					Node node = set.poll();
+					int x = node.vector.x;
+					int y = node.vector.y;
+					
+					if (union(x, y)) {
+						System.out.println(node);
+						answer += node.cost;
+					}
+				}
 				
-				
-				return 0;
+				return answer;
 			}
 			
 			static public int findParent(int i){
@@ -198,13 +204,16 @@ public class Quiz02 {
 				}
 			}
 			
-			static public void union(int x, int y) {
+			static public boolean union(int x, int y) {
 				
 				int xRoot = findParent(x);
 				int yRoot = findParent(y);
 				
 				if (xRoot != yRoot) {
 					parent[yRoot] = xRoot;
+					return true;
+				}else{
+					return false;
 				}
 			}
 		}
