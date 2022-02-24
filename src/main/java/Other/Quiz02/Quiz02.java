@@ -150,7 +150,6 @@ public class Quiz02 {
 			
 			// 지금 이 구조면
 			// 6 -> 7
-			
 			boolean[] groupVisited = new boolean[group];
 			for (Node node : set) {
 				int a = node.vector.x;
@@ -162,8 +161,54 @@ public class Quiz02 {
 				answer += node.cost;
 			}
 			
+			
+			Kruskal.setParent(group);
+			
+			int[] parent = new int[group];
+			for (int i = 0; i < parent.length; i++) {
+				parent[i] = i;
+			}
 			return answer;
+			
 		}
+		
+		static class Kruskal {
+			
+			static int[] parent;
+			
+			static public  void setParent(int group) {
+				parent = new int[group];
+				for (int i = 0; i < parent.length; i++) {
+					parent[i] = i;
+				}
+			}
+			
+			static public int cal(Set<Node> set) {
+				
+				
+				
+				return 0;
+			}
+			
+			static public int findParent(int i){
+				if (parent[i] != i) {
+					return findParent(parent[i]);
+				}else{
+					return i;
+				}
+			}
+			
+			static public void union(int x, int y) {
+				
+				int xRoot = findParent(x);
+				int yRoot = findParent(y);
+				
+				if (xRoot != yRoot) {
+					parent[yRoot] = xRoot;
+				}
+			}
+		}
+		
 		
 		static class Node implements Comparable<Node> {
 			
@@ -171,6 +216,13 @@ public class Quiz02 {
 			int cost;
 			
 			public Node(vector vector, int cost) {
+				
+				if(vector.x > vector.y){
+					int temp = vector.x;
+					vector.x = vector.y;
+					vector.y = temp;
+				}
+				
 				this.vector = vector;
 				this.cost   = cost;
 			}
