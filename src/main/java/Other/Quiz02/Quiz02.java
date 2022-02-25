@@ -7,10 +7,10 @@ public class Quiz02 {
 	public static void main(String[] args) {
 		
 		
-		// int[][] land = {{1, 4, 8, 10, 10}, {5, 5, 5, 5, 10}, {10, 10, 10, 10, 1}, {10, 10, 10, 20, 1}, {1, 1, 1, 1, 1}};
+		int[][] land = {{1, 4, 8, 10, 10}, {5, 5, 5, 5, 10}, {10, 10, 10, 10, 1}, {10, 10, 10, 20, 1}, {1, 1, 1, 1, 100}};
 		// int[][] land = {{1, 4, 8, 10}, {5, 5, 5, 5}, {10, 10, 10, 10}, {10, 10, 10, 20}};
-		int[][] land = {{10, 11, 10, 11,5}, {2, 21, 20, 10,3}, {1, 20, 21, 11,2}, {2, 1, 2, 1,9}, {5,7,2,1,3}};
-		int height = 1;
+		// int[][] land = {{10, 11, 10, 11,5}, {2, 21, 20, 10,3}, {1, 20, 21, 11,2}, {2, 1, 2, 1,9}, {5,7,2,1,3}};
+		int height = 9;
 		int result = 15;
 		
 		System.out.println(new Solution().solution(land, height));
@@ -87,13 +87,13 @@ public class Quiz02 {
 			this.height = height;
 			// 상하좌우로 이동이 가능핟고 했으니 변할 수 있는 값을 배열로 만듬
 			n = land.length;
-			for (int i = 0; i < n; i++) {
-				for (int j = 0; j < n; j++) {
-					System.out.printf("  %3d", land[i][j]);
-				}
-				System.out.println();
-			}
-			System.out.println("-------------------------------------");
+			// for (int i = 0; i < n; i++) {
+			// 	for (int j = 0; j < n; j++) {
+			// 		System.out.printf("  %3d", land[i][j]);
+			// 	}
+			// 	System.out.println();
+			// }
+			// System.out.println("-------------------------------------");
 			
 			// 그룹화
 			int group = 0;
@@ -107,7 +107,7 @@ public class Quiz02 {
 			}
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {
-					System.out.printf("  %3d", groupMap.get(new vector(i, j)));
+					System.out.printf("  %3d(%3d)", groupMap.get(new vector(i, j)), land[i][j]);
 				}
 				System.out.println();
 			}
@@ -136,6 +136,7 @@ public class Quiz02 {
 								if (!costMap.containsKey(key) || costMap.get(key).cost > diff) {
 									costMap.put(key, new Node(key, diff));
 								}
+								
 							}
 						}
 					}
@@ -148,22 +149,7 @@ public class Quiz02 {
 				set.add(costMap.get(key));
 			}
 			
-			// 지금 이 구조면
-			// 6 -> 7
-			// boolean[] groupVisited = new boolean[group];
-			// for (Node node : set) {
-			// 	int a = node.vector.x;
-			// 	int b = node.vector.y;
-			//
-			// 	if(groupVisited[b] || groupVisited[a]) continue;
-			// 	groupVisited[b] = true;
-			// 	System.out.println(node);
-			// 	answer += node.cost;
-			// }
-			
-			
-			Kruskal.setParent(group);
-			answer = Kruskal.cal(set);
+			answer = Kruskal.cal(set, group);
 			return answer;
 			
 		}
@@ -172,15 +158,13 @@ public class Quiz02 {
 			
 			static int[] parent;
 			
-			static public  void setParent(int group) {
+			static public int cal(PriorityQueue<Node> set, int group) {
+				int answer = 0;
+				
 				parent = new int[group];
 				for (int i = 0; i < parent.length; i++) {
 					parent[i] = i;
 				}
-			}
-			
-			static public int cal(PriorityQueue<Node> set) {
-				int answer = 0;
 				
 				while (!set.isEmpty()){
 					Node node = set.poll();
@@ -188,8 +172,8 @@ public class Quiz02 {
 					int y = node.vector.y;
 					
 					if (union(x, y)) {
-						System.out.println(node);
 						answer += node.cost;
+						System.out.println(node);
 					}
 				}
 				
@@ -217,7 +201,6 @@ public class Quiz02 {
 				}
 			}
 		}
-		
 		
 		static class Node implements Comparable<Node> {
 			
@@ -250,8 +233,6 @@ public class Quiz02 {
 			}
 		}
 		
-		
-		
 		static class vector {
 			int x;
 			int y;
@@ -261,7 +242,6 @@ public class Quiz02 {
 				this.y = y;
 			}
 			
-			
 			@Override
 			public boolean equals(Object o) {
 				if (this == o) return true;
@@ -270,15 +250,11 @@ public class Quiz02 {
 				return x == vector.x && y == vector.y;
 			}
 
+			
 			@Override
 			public int hashCode() {
 				return Objects.hash(x, y);
 			}
-			
-			// @Override
-			// public int compareTo(vector o) {
-			// 	return this.num - o.num;
-			// }
 			
 			@Override
 			public String toString() {
@@ -312,7 +288,7 @@ public class Quiz02 {
 					int x = a + dx[k];
 					int y = b + dy[k];
 					
-					if (x >= 0 && x < n && y >= 0 && y < n && !visited[x][y] && Math.abs(land[a][b] - land[x][y]) <= height) {
+						if (x >= 0 && x < n && y >= 0 && y < n && !visited[x][y] && Math.abs(land[a][b] - land[x][y]) <= height) {
 						visited[x][y] = true;
 						Solution.vector nextVector = new vector(x, y);
 						groupMap.put(new vector(x, y), group);
