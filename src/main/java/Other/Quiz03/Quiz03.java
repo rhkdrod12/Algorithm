@@ -1,7 +1,7 @@
 package Other.Quiz03;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Quiz03 {
 	
@@ -56,65 +56,69 @@ public class Quiz03 {
 	*/
 	
 	public static void main(String[] args) {
-		// int[] food_times = {3, 1, 2};
-		int[] food_times = {7,8,3,3,2,2,2,2,2,2,2,2};
-		long k = 35;
+		int[] food_times = {8, 1, 2, 1};
+		long k = 2;
+		// int[] food_times = {7,8,3,3,2,2,2,2,2,2,2,2};
+		// long k = 35;
 		
 		System.out.println("answer = " + new Solution().solution(food_times, k));
 	}
 	
 	static class Solution {
 		public int solution(int[] food_times, long k) {
-			int answer = -1;
 			
-			// 어 음.. 그냥 큐 쓰면 되는 거아냐??
-			// 시간 초과나는거 봐서는 결국에는 수학적 방식이 들어가야한다는 거네.
-			
-			Queue<Node> queue = new LinkedList<>();
+			ArrayList<Node> list = new ArrayList<>();
 			long total = 0;
 			for (int i = 0; i < food_times.length; i++) {
-				queue.add(new Node(i, food_times[i]));
+				list.add(new Node(i+1, food_times[i]));
 				total += food_times[i];
 			}
-			System.out.println("total = " + total);
+			if (total < k) return -1;
+			list.sort((o1, o2) -> o1.time == o2.time ? o2.index - o1.index : o1.time - o2.time);
 			
-			if(total > k){
-				return -1;
-			}
-			
-			long time = 0;
-			while (!queue.isEmpty()) {
-				Node node = queue.poll();
-				time++;
-				node.cost--;
+			int curTime = 0;
+			int loopSize = list.size();
+			for (int i = 0; i < list.size(); i++) {
+				long diff = list.get(i).time - curTime;
 				
-				if (time == k) {
-					break;
-				}else if (node.cost != 0) {
-					queue.offer(node);
+				if (diff != 0) {
+					long loopTime = diff * loopSize;
+					if (loopTime <= k) {
+						k -= loopTime;
+						curTime = list.get(i).time;
+					}else{
+						List<Node> subList = list.subList(i, food_times.length);
+						subList.sort((o1, o2) -> o1.index - o2.index);
+						return subList.get((int)( k % loopSize)).index;
+					}
 				}
+				loopSize--;
 			}
 			
-			if(!queue.isEmpty()){
-				answer = queue.peek().index + 1;
-			}
-			return answer;
+			
+			return -1;
+			
 		}
 		
-		class Node{
+		class Node implements Comparable<Node>{
 			int index;
-			int cost;
+			int time;
 			
-			public Node(int index, int cost) {
+			public Node(int index, int time) {
 				this.index = index;
-				this.cost  = cost;
+				this.time  = time;
+			}
+			
+			@Override
+			public int compareTo(Node o) {
+				return this.time == o.time ? this.index - o.index : this.time - o.time;
 			}
 			
 			@Override
 			public String toString() {
 				return "Node{" +
 						       "index=" + index +
-						       ", cost=" + cost +
+						       ", time=" + time +
 						       '}';
 			}
 		}
