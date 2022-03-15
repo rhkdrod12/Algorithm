@@ -40,6 +40,18 @@ public class Quiz04 {
 		String[] strs = {"ba", "na", "n", "a"};
 		String t = "banana";
 		
+		// DP 문제이다라
+		// b가 되는 단어 없음
+		// DP[a][b] a ~ b 까지 매칭되는 최소의 단어수로 한다고 하면
+		// DP[a] = 0 ~ a 까지 매칭되는 최소의 단어수
+		// 현재 단어의 길이를 n이라고 하고, 현재 단어가 0 ~ a 사이에 존재한다고 하면
+		// if(str.lastIndexof(words) == a) DP[a] = DP[a - n] + 1 이 정도가 되려나??
+		// 근데 무조건 갱신하면 안되자나
+		// 물론 a는 t의 index이긴한데
+		//
+		//
+		
+		
 		System.out.println("answer = " + new Solution().solution(strs, t));
 		
 	}
@@ -53,6 +65,24 @@ public class Quiz04 {
 			// 단어 조각은 1 ~ 5의 길이, 모두 소문자로만 존재
 			// 만들 수 없으면 -1 반환
 			// 단어의 길이가 길수록 최소한의 매칭으로 끝낼 수 있겠지
+			
+			// 어 음 DP를 사용한다고하면
+			
+			int[] DP = new int[t.length()];
+			
+			for (int k = 0; k < t.length(); k++) {
+				for (int i = 0; i < strs.length; i++) {
+					String word = strs[i];
+					if (t.indexOf(word, k) == k) {
+						System.out.printf("word: %-5s  idx: %-5d k: %-5d\n",word, k + word.length() - 1
+								
+								
+								
+								, k);
+					}
+				}
+			}
+			
 			
 			
 			// [실행] 버튼을 누르면 출력 값을 볼 수 있습니다.
