@@ -50,6 +50,12 @@ public class Quiz05 {
 	  0 0 0 #
 	  0 0 0 0
 	  0 # 0 0
+	  
+	  # 0 0 #
+	  0 0 0 0
+	  0 # 0 0
+	  0 0 0 #
+	  
 	네 번째 예제에서 손님을 모서리부터 배치하는 건 좋은 전략이 아니다.
 	2명까지는 거리가 6으로 가장 먼 거리가 되지만 예약된 다음 손님이 들어오면 할당된 락커 간 거리는 3이 돼버린다.
 	이런 경우 라이언은 예약시간을 고려해서 거리가 4가 되도록 배치한다.
@@ -57,9 +63,19 @@ public class Quiz05 {
 	public static void main(String[] args) {
 		
 		int n = 4;
-		int m = 5;
-		int[][] timetable = {{1140,1200},{1150,1200},{1100,1200},{1210,1300},{1220,1280}};
+		int m = 6;
+		int[][] timetable = {{1140,1200},{1150,1200},{1100,1200},{1210,1300},{1220,1280}, {1130, 1200}};
 		int answer = 4;
+		
+		// int n = 2;
+		// int m = 2;
+		// int[][] timetable = {{600, 630}, {630, 700}};
+		
+		// int n = 1;
+		// int m = 1;
+		// int[][] timetable = {{840,900}};
+		
+		
 		
 		System.out.println("answer: " + new Solution().solution(n, m, timetable));
 		System.out.println("정답: " + answer);
@@ -68,7 +84,6 @@ public class Quiz05 {
 	
 	static class Solution {
 		public int solution(int n, int m, int[][] timetable) {
-			int answer = 0;
 			
 			// 상하좌우의 경우 1의 길이를 가짐
 			// 어차피 대각선도 상하좌우 2번 움직인거나 마찬가지
@@ -83,7 +98,7 @@ public class Quiz05 {
 			Arrays.sort(timetable, (o1, o2) -> o1[0]==o2[0]?o1[1] - o2[1]:o1[0] - o2[0]);
 			
 			int cnt = 0;
-			int max = 0;
+			int maxPeople = 0;
 			
 			Queue<Integer> stSt = new LinkedList<>();
 			Queue<Integer> etSt = new LinkedList<>();
@@ -102,33 +117,45 @@ public class Quiz05 {
 					cnt--;
 					endTime = etSt.poll();
 				}
-				if(max < cnt) max = cnt;
+				if(maxPeople < cnt) maxPeople = cnt;
 			}
 			
-			if(max <= 1) return 0;
+			if(maxPeople <= 1) return 0;
 			
 			// 최대 가능한 거리는 양쪽 끝에 2명이 배치된 경우
 			int maxLength = 2 * (n - 1);
 			
-			System.out.println("max = " + max);
-			
 			for (int length = maxLength; length > 0; length--) {
 				for (int y = 0; y < n; y++) {
 					for (int x = 0; x < n; x++) {
-						Set<Node> select = new HashSet<>();
+						Set<Node> select = new LinkedHashSet<>();
 						select.add(new Node(x, y));
+						
+						int tempX = x+1;
+						int tempY = y;
+						
 						// 사람 수 -1 만큼 반복
-						for (int i = 0; i < max - 1; i++) {
-							// 근데
-							for (int y1 = y + 1; y1 < n; y1++) {
-								for (int x1 = x + 1; x1 < n; x1++) {
-									
+						
+						for (int y1 = tempY; y1 < n; y1++) {
+							for (int x1 = tempX; x1 < n; x1++) {
+								boolean flag = true;
+								
+								for (Node node : select) {
+									if (length > (Math.abs(node.x - x1)  + Math.abs(node.y - y1))) {
+										flag = false;
+										break;
+									}
+								}
+								
+								if (flag) {
+									select.add(new Node(x1, y1));
+								}
+								
+								if (select.size() == maxPeople) {
+									return length;
 								}
 							}
-						}
-						
-						if (select.size() == max) {
-							return length;
+							tempX = 0;              // 한바퀴 돌고나서는 0부터 시작하도록 변경
 						}
 					}
 				}
@@ -148,16 +175,11 @@ public class Quiz05 {
 			}
 			
 			@Override
-			public boolean equals(Object o) {
-				if (this == o) return true;
-				if (o == null || getClass() != o.getClass()) return false;
-				Node node = (Node) o;
-				return x == node.x && y == node.y;
-			}
-			
-			@Override
-			public int hashCode() {
-				return Objects.hash(x, y);
+			public String toString() {
+				return "Node{" +
+						       "x=" + x +
+						       ", y=" + y +
+						       '}';
 			}
 		}
 	}
