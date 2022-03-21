@@ -1,8 +1,6 @@
 package Other.Quiz05;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 public class Quiz05 {
 	/*
@@ -107,53 +105,60 @@ public class Quiz05 {
 				if(max < cnt) max = cnt;
 			}
 			
+			if(max <= 1) return 0;
+			
+			// 최대 가능한 거리는 양쪽 끝에 2명이 배치된 경우
+			int maxLength = 2 * (n - 1);
+			
 			System.out.println("max = " + max);
 			
-			// 그럼 이제 max를 어떻게 배치하냐인데
-			// 해당 값을 가장 멀리 배치할 수 있는 방법
+			for (int length = maxLength; length > 0; length--) {
+				for (int y = 0; y < n; y++) {
+					for (int x = 0; x < n; x++) {
+						Set<Node> select = new HashSet<>();
+						select.add(new Node(x, y));
+						// 사람 수 -1 만큼 반복
+						for (int i = 0; i < max - 1; i++) {
+							// 근데
+							for (int y1 = y + 1; y1 < n; y1++) {
+								for (int x1 = x + 1; x1 < n; x1++) {
+									
+								}
+							}
+						}
+						
+						if (select.size() == max) {
+							return length;
+						}
+					}
+				}
+			}
 			
-			// m = 1  l = 0
+			return 0;
+		}
+		
+		class Node{
 			
-			// m = 2  l = 6  size = 16
-			// # 0 0 0
-			// 0 0 0 0
-			// 0 0 0 0
-			// 0 0 0 #
+			int x;
+			int y;
 			
-			// m = 3  l = 4  size = 16
-			// # 0 0 0
-			// 0 0 0 #
-			// 0 0 0 0
-			// 0 # 0 0
+			public Node(int x, int y) {
+				this.x = x;
+				this.y = y;
+			}
 			
-			// m = 4  l = 3  size = 16
-			// # 0 0 #
-			// 0 0 0 0
-			// 0 0 0 0
-			// # 0 0 #
+			@Override
+			public boolean equals(Object o) {
+				if (this == o) return true;
+				if (o == null || getClass() != o.getClass()) return false;
+				Node node = (Node) o;
+				return x == node.x && y == node.y;
+			}
 			
-			// m = 5  l = 2  size = 16
-			// # 0 0 0
-			// 0 0 # 0
-			// 0 # 0 0
-			// # 0 0 #
-			
-			// m = 6  l = 2  size = 16
-			// # 0 0 #
-			// 0 0 # 0
-			// 0 # 0 0
-			// # 0 0 #
-			
-			// 어 음.. 각 거리를 n이 되도록 배치한다면..?
-			// 최대 칸수는 16이고 3명을 배치한다고 하면
-			// 2개 일 때 가장 멀리 가능한건 9
-			
-			// 브루트 포스... 무차별 대입..
-			// 그치만 최소한으로 돌리고 싶은디..
-			
-			
-			
-			return answer;
+			@Override
+			public int hashCode() {
+				return Objects.hash(x, y);
+			}
 		}
 	}
 	
