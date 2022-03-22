@@ -53,7 +53,7 @@ public class Quiz05 {
 	  
 	  # 0 0 #
 	  0 0 0 0
-	  0 # 0 0
+	  # 0 0 0
 	  0 0 0 #
 	  
 	네 번째 예제에서 손님을 모서리부터 배치하는 건 좋은 전략이 아니다.
@@ -64,7 +64,7 @@ public class Quiz05 {
 		
 		int n = 4;
 		int m = 6;
-		int[][] timetable = {{1140,1200},{1150,1200},{1100,1200},{1210,1300},{1220,1280}, {1130, 1200}};
+		int[][] timetable = {{0, 1200},{1130, 1200},{1130, 1200}};
 		int answer = 4;
 		
 		// int n = 2;
@@ -75,9 +75,7 @@ public class Quiz05 {
 		// int m = 1;
 		// int[][] timetable = {{840,900}};
 		
-		
-		
-		System.out.println("answer: " + new Solution().solution(n, m, timetable));
+		System.out.println("answer: " + new Solution().solution(n, timetable.length, timetable));
 		System.out.println("정답: " + answer);
 	
 	}
@@ -95,19 +93,20 @@ public class Quiz05 {
 			
 			// 배치되어야하는 겹칠 수 있는 시간대의 최대 사람수
 			// 어차피 나머지는 최대 사람이 있는 경우에만 가장 가까워질 수 있기 때문에 필요없음
-			Arrays.sort(timetable, (o1, o2) -> o1[0]==o2[0]?o1[1] - o2[1]:o1[0] - o2[0]);
 			
+			Arrays.sort(timetable, (o1, o2) -> o1[0]==o2[0]?o1[1] - o2[1]:o1[0] - o2[0]);
+
 			int cnt = 0;
 			int maxPeople = 0;
-			
+
 			Queue<Integer> stSt = new LinkedList<>();
 			Queue<Integer> etSt = new LinkedList<>();
-			
+
 			for (int i = 0; i < timetable.length; i++) {
 				stSt.add(timetable[i][0]);
 				etSt.add(timetable[i][1]);
 			}
-			
+
 			int startTime;
 			int endTime = etSt.poll();
 			for (int i = 0; i < m; i++) {
@@ -119,9 +118,8 @@ public class Quiz05 {
 				}
 				if(maxPeople < cnt) maxPeople = cnt;
 			}
-			
+
 			if(maxPeople <= 1) return 0;
-			
 			
 			// 모든 사람이 length를 만족시켜야만 참인거고
 			// 그렇다면
@@ -129,36 +127,59 @@ public class Quiz05 {
 			// 최대 가능한 거리는 양쪽 끝에 2명이 배치된 경우
 			int maxLength = 2 * (n - 1);
 			for (int length = maxLength; length > 0; length--) {
-				for (int y = 0; y < n; y++) {
-					for (int x = 0; x < n; x++) {
-						// 찾은 노드들을 순회시켜야하는데.. 근데
-						// 찾은 노드가 매번 달라진단 말이지..
-						Node curNode = new Node(x, y);
-						List<Node> list = new ArrayList<>();
-						list.add(curNode);
-						
-						for (int man = 1; man < maxPeople; man++) {
-							// curNode의 다음 위치 지정
-							int tempX = curNode.x + 1 < n ? curNode.x + 1 : 0;
-							int tempY = curNode.x + 1 < n ? curNode.y : curNode.y + 1;
-							
-							for (int y1 = tempY; y1 < n; y1++) {
-								for (int x1 = tempX; x1 < n; x1++) {
-									System.out.println(tempX);
-								}
-								tempX = 0;
-							}
-						}
-					}
+				List<Node> list = new ArrayList<>();
+				list.add(new Node(0, 0));
+				if(dfs(new Node(0, 0), length, maxPeople - 1, n, list, maxPeople)){
+					return length;
 				}
-				
 			}
 			
 			return 0;
 		}
 		
-		public void dfs(Node node, int man) {
-		
+		public boolean dfs(Node curNode, int dis, int man, int n, List<Node> list, int maxMan) {
+			
+			if(man == 0){
+				if (list.size() == maxMan) {
+					
+					String str = "";
+					for (Node node : list) {
+						str += node.x + ":" + node.y + ",";
+					}
+					
+					for (int i = 0; i < n; i++) {
+						for (int j = 0; j < n; j++) {
+							System.out.printf("%s ", str.indexOf(j + ":" + i) != -1 ? "#" : 0);
+						}
+						System.out.println();
+					}
+				}
+				
+				return list.size() == maxMan ? true : false;
+			}
+			
+			int tempX = curNode.x + 1 < n ? curNode.x + 1 : 0;
+			int tempY = curNode.x + 1 < n ? curNode.y : curNode.y + 1;
+			
+			for (int y = tempY; y < n; y++) {
+				for (int x = tempX; x < n; x++) {
+					boolean flag = true;
+					for (Node node : list) {
+						if (dis > (Math.abs(node.x - x) + Math.abs(node.y - y))) {
+							flag = false;
+							break;
+						}
+					}
+					
+					if (flag) {
+						List<Node> nextList = new ArrayList<>(list);
+						nextList.add(new Node(x, y));
+						return dfs(new Node(x, y), dis, man-1, n, nextList, maxMan);
+					}
+				}
+				tempX = 0;
+			}
+			return false;
 		}
 		
 		class Node{
