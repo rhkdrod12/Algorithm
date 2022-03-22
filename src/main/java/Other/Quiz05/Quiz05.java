@@ -122,46 +122,43 @@ public class Quiz05 {
 			
 			if(maxPeople <= 1) return 0;
 			
+			
+			// 모든 사람이 length를 만족시켜야만 참인거고
+			// 그렇다면
+			
 			// 최대 가능한 거리는 양쪽 끝에 2명이 배치된 경우
 			int maxLength = 2 * (n - 1);
-			
 			for (int length = maxLength; length > 0; length--) {
 				for (int y = 0; y < n; y++) {
 					for (int x = 0; x < n; x++) {
-						Set<Node> select = new LinkedHashSet<>();
-						select.add(new Node(x, y));
+						// 찾은 노드들을 순회시켜야하는데.. 근데
+						// 찾은 노드가 매번 달라진단 말이지..
+						Node curNode = new Node(x, y);
+						List<Node> list = new ArrayList<>();
+						list.add(curNode);
 						
-						int tempX = x+1;
-						int tempY = y;
-						
-						// 사람 수 -1 만큼 반복
-						
-						for (int y1 = tempY; y1 < n; y1++) {
-							for (int x1 = tempX; x1 < n; x1++) {
-								boolean flag = true;
-								
-								for (Node node : select) {
-									if (length > (Math.abs(node.x - x1)  + Math.abs(node.y - y1))) {
-										flag = false;
-										break;
-									}
+						for (int man = 1; man < maxPeople; man++) {
+							// curNode의 다음 위치 지정
+							int tempX = curNode.x + 1 < n ? curNode.x + 1 : 0;
+							int tempY = curNode.x + 1 < n ? curNode.y : curNode.y + 1;
+							
+							for (int y1 = tempY; y1 < n; y1++) {
+								for (int x1 = tempX; x1 < n; x1++) {
+									System.out.println(tempX);
 								}
-								
-								if (flag) {
-									select.add(new Node(x1, y1));
-								}
-								
-								if (select.size() == maxPeople) {
-									return length;
-								}
+								tempX = 0;
 							}
-							tempX = 0;              // 한바퀴 돌고나서는 0부터 시작하도록 변경
 						}
 					}
 				}
+				
 			}
 			
 			return 0;
+		}
+		
+		public void dfs(Node node, int man) {
+		
 		}
 		
 		class Node{
