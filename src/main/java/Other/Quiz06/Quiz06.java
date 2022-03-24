@@ -1,5 +1,9 @@
 package Other.Quiz06;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Quiz06 {
 	
 	/*
@@ -59,14 +63,49 @@ public class Quiz06 {
 		따라서, [6,3,1,5,9]를 return 해야 합니다.
 	 */
 	public static void main(String[] args) {
-	
+		
+		
+		int[] a = {1, 1, 1, 1, 1, 1, 2, 5, 8, 2, 1, 1, 4, 8, 8, 8, 12, 6, 6};
+		int[] s = {4, 3, 1, 5, 6};
+		
+		//[6,3,1,5,9]
+		System.out.println("new Solution().solution(a, s) = " + Arrays.toString(new Solution().solution(a, s)));
+		
 	}
 	
 	static class Solution {
 		public int[] solution(int[] a, int[] s) {
-			int[] answer = {};
+			
+			
+			int n = s.length;
+			
+			int[] answer = new int[n];
+			
+			List<Integer>[] lists = new List[n];
+			int idx = 0;
+			for (int i = 0; i < s.length; i++) {
+				lists[i] = new ArrayList<>();
+				for (int j = idx; j < idx + s[i]; j++) {
+					lists[i].add(a[j]);
+				}
+				System.out.println(lists[i]);
+				idx += s[i];
+			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			return answer;
 		}
+		
+		
+		
+		
 	}
 	
 }
