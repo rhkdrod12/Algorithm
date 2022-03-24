@@ -61,19 +61,22 @@ public class Quiz05 {
 	이런 경우 라이언은 예약시간을 고려해서 거리가 4가 되도록 배치한다.
 	*/
 	public static void main(String[] args) {
+		// 0 < n <= 10
+		// 0 <= m <= 1,000
+		// 600 <= t1 < t2 <= 1,320
 		
-		int n = 4;
-		int m = 6;
-		int[][] timetable = {{0, 1200},{1130, 1200},{1130, 1200}};
+		// int n = 4;
+		// int m = 6;
+		// int[][] timetable = {{600, 1320}, {600, 1320}, {800,1320}};
 		int answer = 4;
 		
-		// int n = 2;
+		// int n = 3;
 		// int m = 2;
-		// int[][] timetable = {{600, 630}, {630, 700}};
+		// int[][] timetable = {{600, 630}, {630, 700},{600, 630}, {630, 700},{630, 700},{630, 700}};
 		
-		// int n = 1;
-		// int m = 1;
-		// int[][] timetable = {{840,900}};
+		int n = 10;
+		int m = 1;
+		int[][] timetable = {{840,900}, {900, 1100}, {1100, 1200}};
 		
 		System.out.println("answer: " + new Solution().solution(n, timetable.length, timetable));
 		System.out.println("정답: " + answer);
@@ -94,96 +97,90 @@ public class Quiz05 {
 			// 배치되어야하는 겹칠 수 있는 시간대의 최대 사람수
 			// 어차피 나머지는 최대 사람이 있는 경우에만 가장 가까워질 수 있기 때문에 필요없음
 			
-			Arrays.sort(timetable, (o1, o2) -> o1[0]==o2[0]?o1[1] - o2[1]:o1[0] - o2[0]);
-
-			int cnt = 0;
+			if(m == 0) return 0;
+			
+			Arrays.sort(timetable, (o1, o2) -> o1[1] - o2[1]);
+			
 			int maxPeople = 0;
-
-			Queue<Integer> stSt = new LinkedList<>();
-			Queue<Integer> etSt = new LinkedList<>();
-
-			for (int i = 0; i < timetable.length; i++) {
-				stSt.add(timetable[i][0]);
-				etSt.add(timetable[i][1]);
-			}
-
-			int startTime;
-			int endTime = etSt.poll();
 			for (int i = 0; i < m; i++) {
-				startTime = stSt.poll();
-				cnt++;
-				if (endTime < startTime) {
-					cnt--;
-					endTime = etSt.poll();
+				int cnt = 1;
+				for (int target = i+1; target < m; target++) {
+					if (timetable[i][1] >= timetable[target][0] &&
+					    timetable[i][1] <= timetable[target][1]) {
+						cnt++;
+					}
 				}
-				if(maxPeople < cnt) maxPeople = cnt;
+				maxPeople = Math.max(maxPeople, cnt);
 			}
 
 			if(maxPeople <= 1) return 0;
 			
 			// 모든 사람이 length를 만족시켜야만 참인거고
-			// 그렇다면
+			// 그렇다면 어차피 무엇이 되었든 해당 최소거리로 모두 배치하는게 가능하고
+			// 그 4, 5, 6 이렇게 배치할 수 도있찌만
+			// 결국에는 해당 거리중 최소거리를 구하는 것임
+			// 따라서 4, 4, 4도 무조건 성립하지
+			// 배치를 구하는게 아니기 때문에 모든 경우를 전부 뒤질 필요는 없다라는거지유..
+			// 즉 해당 거리로 해당 인원이 배치가 가능하냐만 따지면 됨..
+			
 			
 			// 최대 가능한 거리는 양쪽 끝에 2명이 배치된 경우
-			int maxLength = 2 * (n - 1);
-			for (int length = maxLength; length > 0; length--) {
-				List<Node> list = new ArrayList<>();
-				list.add(new Node(0, 0));
-				if(dfs(new Node(0, 0), length, maxPeople - 1, n, list, maxPeople)){
-					return length;
+			for (int length = 2 * n - 2; length > 0; length--) {
+				for (int y = 0; y < n; y++) {
+					for (int x = 0; x < n; x++) {
+					
+						Set<Node> set = new LinkedHashSet<>();
+						set.add(new Node(x, y));
+						
+						// int tempX = x + 1 < n ? x + 1 : 0;
+						// int tempY = x + 1 < n ? y : y + 1;
+						
+						for (int y1 = y; y1 < n; y1++) {
+							for (int x1 = 0; x1 < n; x1++) {
+								if(y1 < y || (y1 == y && x1 <= x)) continue;
+								boolean flag = true;
+								for (Node node : set) {
+									int dis = Math.abs(node.x - x1) + Math.abs(node.y - y1);
+									if (length > dis) {
+										flag = false;
+										break;
+									}
+								}
+								if (flag) {
+									set.add(new Node(x1, y1));
+								}
+								
+								if (set.size() == maxPeople) {
+									
+									String str = "";
+									for (Node node : set) {
+										str += node.x + ":" + node.y +",";
+									}
+									
+									for (int i = 0; i < n; i++) {
+										for (int j = 0; j < n; j++) {
+											if (str.contains(j + ":" + i)) {
+												System.out.print("# ");
+											}else{
+												System.out.print("0 ");
+											}
+										}
+										System.out.println();
+									}
+									
+									System.out.println(set);
+									return length;
+								}
+							}
+						}
+					}
 				}
 			}
 			
 			return 0;
 		}
 		
-		public boolean dfs(Node curNode, int dis, int man, int n, List<Node> list, int maxMan) {
-			
-			if(man == 0){
-				if (list.size() == maxMan) {
-					
-					String str = "";
-					for (Node node : list) {
-						str += node.x + ":" + node.y + ",";
-					}
-					
-					for (int i = 0; i < n; i++) {
-						for (int j = 0; j < n; j++) {
-							System.out.printf("%s ", str.indexOf(j + ":" + i) != -1 ? "#" : 0);
-						}
-						System.out.println();
-					}
-				}
-				
-				return list.size() == maxMan ? true : false;
-			}
-			
-			int tempX = curNode.x + 1 < n ? curNode.x + 1 : 0;
-			int tempY = curNode.x + 1 < n ? curNode.y : curNode.y + 1;
-			
-			for (int y = tempY; y < n; y++) {
-				for (int x = tempX; x < n; x++) {
-					boolean flag = true;
-					for (Node node : list) {
-						if (dis > (Math.abs(node.x - x) + Math.abs(node.y - y))) {
-							flag = false;
-							break;
-						}
-					}
-					
-					if (flag) {
-						List<Node> nextList = new ArrayList<>(list);
-						nextList.add(new Node(x, y));
-						return dfs(new Node(x, y), dis, man-1, n, nextList, maxMan);
-					}
-				}
-				tempX = 0;
-			}
-			return false;
-		}
-		
 		class Node{
-			
 			int x;
 			int y;
 			
