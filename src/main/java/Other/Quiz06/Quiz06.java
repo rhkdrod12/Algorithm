@@ -148,20 +148,30 @@ public class Quiz06 {
 			for (int i = 1; i < testList.size(); i++) {
 			
 			}
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			return answer;
 		}
 		
+		int total = 0;
+		// 일단 무식하게 풀어봅시다.
+		public void dfs(int point, LinkedList<Integer> list) {
+			
+			if (point == 0 || list.size() < 2) {
+				return;
+			}
+			
+			for (int i = point; i < list.size(); i++) {
+				int Y = list.get(i - 1);
+				int X = list.get(i);
+				
+				if (Y == X) {
+					total++;
+					LinkedList<Integer> temp = new LinkedList<>(list);
+					temp.set(i, Y + X);
+					temp.remove(i - 1);
+					dfs(i, temp);
+				}
+			}
+		}
 		
 		
 		
