@@ -73,6 +73,7 @@ public class Quiz06 {
 		//[6,3,1,5,9]
 		System.out.println("new Solution().solution(a, s) = " + Arrays.toString(new Solution().solution(a, s)));
 		
+		
 	}
 	
 	static class Solution {

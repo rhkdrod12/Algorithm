@@ -124,9 +124,6 @@ public class Quiz06_try2 {
 			 * 3 ~ 4번 까지 b[5][j] 3 <= j < 5까지 전부 b[5]*2^j 에 속해야함
 			 * 6, 12 이니까 전부 속함 가능!
 			 * 매번 연산하는것보다 전부 구해서 넣어놓는게 더 좋으려나..?
-			 *
-			 *
-			 *
 			 */
 			
 			List<Integer> list = lists[4];
@@ -138,7 +135,7 @@ public class Quiz06_try2 {
 			//PS[5][0] = b[i]*2^0
 			//PS[5][1] = b[i]*2^1
 			//PS[5][2] = b[i]*2^2
-			//
+			
 			for (int i = size-1; i > 0; i--) {
 				int temp = 0;
 				for (int j = 0; j < i; j++) {
@@ -146,7 +143,7 @@ public class Quiz06_try2 {
 					int val = list.get(i) * (int)Math.pow(2, j);
 					System.out.printf("i: %d val: %2d, temp: %2d\n",i, val, temp);
 					if (val == temp) {
-						PS[i][j] = list.get(i) * (int)Math.pow(2, j);
+						PS[i][j] = val;
 					}else{
 						break;
 					}
@@ -155,6 +152,9 @@ public class Quiz06_try2 {
 			
 			Arrays.asList(PS).forEach(x -> System.out.println(Arrays.toString(x)));
 			
+			for (int i = 1; i < size; i++) {
+			
+			}
 			
 			
 			// [8, 8, 8, 12, 6, 6]
