@@ -121,6 +121,7 @@ public class Quiz06_try2 {
 			 *
 			 * j = 2 면
 			 * k = 5 - 2 = 3
+			 * k = i - j
 			 * 3 ~ 4번 까지 b[5][j] 3 <= j < 5까지 전부 b[5]*2^j 에 속해야함
 			 * 6, 12 이니까 전부 속함 가능!
 			 * 매번 연산하는것보다 전부 구해서 넣어놓는게 더 좋으려나..?
@@ -152,8 +153,16 @@ public class Quiz06_try2 {
 			
 			Arrays.asList(PS).forEach(x -> System.out.println(Arrays.toString(x)));
 			
+			// DP[i][j] = SUM(DP[k-1][p])(b[k-1]*2^p == b[i]*2^(j-1)의 조건일 떄)
 			for (int i = 1; i < size; i++) {
-			
+				for (int j = 0; j <= i; j++) {
+					int t = i - j;
+					for (int k = 0; k < t; k++) {
+						if (PS[i][j] == PS[t][k]) {
+							System.out.println("같음??");
+						}
+					}
+				}
 			}
 			
 			
