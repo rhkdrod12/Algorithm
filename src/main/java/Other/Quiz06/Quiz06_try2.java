@@ -103,57 +103,49 @@ public class Quiz06_try2 {
 			// 합칠 수 있어도 안합칠 수 도 있기 떄문에
 			
 			/**
-			 * DP[i][j] = b[i]에서 세포합치기를 j번 반복했을 때의 경우의 수 라고 정의합시다.
+			 * DP[i][j] = b[i]에서 세포합치기를 j번 반복한 세포일 때의 경우의 수 라고 정의합시다.
 			 * 그리고 j번 합쳤을 때 나오는 수는 b[i]*2^j 따라서 j번 합치기 위해서는 b[i]가 속해있는 세포의 값이 b[i]*(j-1)이 될 때,
 			 * b[i]가 속해있는 세포가 시작되는 위치가 k라고 한다면 b[k-1]*2^p == b[i]*(j-1) (단, 0<= p < k-1) 당연히 k 이상으로 곱할 수는 없틀테니...
 			 *
-			 * 따러서 DP[i][j] = SUM(DP[k-1][p])(b[k-1]*2^p == b[i]*(j-1)의 조건일 떄)
-			 * 그러면 K의 위치를 찾아야하는데.. 어떻게 찾아야하나..
-			 * 이러면 값 보관하고 있을 K라는 배열을 하나 만들어야하나..?
-			 * [8, 8, 8, 12, 6, 6]
+			 * DP[i][0] 이면 0번 합친거니 안합친거
+			 * DP[i][1] 이면 1번 합친 세포와 다른 세포가 합쳐져야하는 것
 			 *
-			 * i = 5라고 한다면
-			 * j = 0 은 안합친거
-			 * j = 1 은 한번 합친거니 바로 옆의 6과 합쳐야함
-			 * 그럼 k = 4가 될거고
-			 * b[k-1] = b[3] 이 될테니 b[3] = 12
-			 * b[i]*2^(j-1) = 12 이고 b[3] = 12이니 참!
+			 * b[i]*2^1 인 경우 b[i-1] == b[i] 여야 하며
+			 * i-2가 속한 세포의 합이 b[i]*2^1와 같아야함
 			 *
-			 * j = 2 면
-			 * k = 5 - 2 = 3
-			 * k = i - j
-			 * 3 ~ 4번 까지 b[5][j] 3 <= j < 5까지 전부 b[5]*2^j 에 속해야함
-			 * 6, 12 이니까 전부 속함 가능!
-			 * 매번 연산하는것보다 전부 구해서 넣어놓는게 더 좋으려나..?
+			 * PS[i][k]는 i위치에서 오른쪽으로 k번 합쳤을 때의 값
+			 * PS[i][0] = b[i]*2^0
+			 * PS[i][1] = b[i]*2^1
+			 * ...
+			 * PS[i][k] = b[i]*2^k (0<= k < (i-j))
+			 * 가 성립 될 수 있음!
 			 */
 			
 			List<Integer> list = lists[4];
 			int size = lists[4].size();
 			
-			int[][] DP = new int[n][n];
+			int[][] DP = new int[size][size];
 			int[][] PS = new int[size][size];
-			
-			//PS[5][0] = b[i]*2^0
-			//PS[5][1] = b[i]*2^1
-			//PS[5][2] = b[i]*2^2
-			
+			System.out.println(list);
 			for (int i = size-1; i > 0; i--) {
-				int temp = 0;
-				for (int j = 0; j < i; j++) {
-					temp += list.get(i - j);
+				int acc = 0;
+				for (int j = 0; j < size; j++) {
+					acc += list.get(i - j);
 					int val = list.get(i) * (int)Math.pow(2, j);
-					System.out.printf("i: %d val: %2d, temp: %2d\n",i, val, temp);
-					if (val == temp) {
+					//System.out.printf("i: %d val: %2d, temp: %2d\n",i, val, acc);
+					if (val == acc) {
 						PS[i][j] = val;
 					}else{
+						PS[i][j] = -1;
 						break;
 					}
 				}
+				System.out.println(i + " " + Arrays.toString(PS[i]));
 			}
 			
 			Arrays.asList(PS).forEach(x -> System.out.println(Arrays.toString(x)));
-			
-			// DP[i][j] = SUM(DP[k-1][p])(b[k-1]*2^p == b[i]*2^(j-1)의 조건일 떄)
+			System.out.println(list);
+			// DP[i][j] = SUM(DP[k-1][p])(b[k-1]*2^p == b[i]*2^(j)의 조건일 떄)
 			for (int i = 1; i < size; i++) {
 				for (int j = 0; j <= i; j++) {
 					int t = i - j;
